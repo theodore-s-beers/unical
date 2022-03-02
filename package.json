@@ -1,0 +1,27 @@
+{
+  "name": "unical",
+  "version": "0.1.0",
+  "description": "",
+  "homepage": "https://github.com/theodore-s-beers/unical#readme",
+  "bugs": {
+    "url": "https://github.com/theodore-s-beers/unical/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theodore-s-beers/unical.git"
+  },
+  "license": "MIT",
+  "author": "Theo Beers",
+  "main": "unical.ts",
+  "scripts": {
+    "check": "tsc --noEmit --skipLibCheck",
+    "lint": "eslint --fix .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.13.0",
+    "eslint": "^8.10.0",
+    "typescript": "^4.6.2"
+  }
+}

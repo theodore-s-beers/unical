@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
-    "noImplicitAny": true
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true
   },
   "files": ["unical.ts"]
 }

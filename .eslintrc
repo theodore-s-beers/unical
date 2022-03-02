@@ -8,6 +8,8 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "rules": {
-    "space-before-function-paren": ["error", "always"]
+    "comma-dangle": "error",
+    "no-trailing-spaces": "error",
+    "space-before-function-paren": "error"
   }
 }

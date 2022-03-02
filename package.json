@@ -14,7 +14,7 @@
   "author": "Theo Beers",
   "main": "unical.ts",
   "scripts": {
-    "check": "tsc --noEmit --skipLibCheck",
+    "check": "tsc",
     "lint": "eslint --fix .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

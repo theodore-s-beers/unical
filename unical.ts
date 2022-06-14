@@ -1,3 +1,6 @@
+// This library was initially adapted from the work of John Walker. His license
+// is below. As you can imagine, a fair bit has been changed...
+
 /*
             JavaScript functions for positional astronomy
 
@@ -6,6 +9,32 @@
 
                 This program is in the public domain.
 */
+
+// Exports!
+
+export {
+  ISLAMIC_WEEKDAYS,
+  NORM_LEAP,
+  PERSIAN_WEEKDAYS,
+  WEEKDAYS,
+  gregorianToJd,
+  hebrewLeap,
+  hebrewToJd,
+  hebrewYearDays,
+  islamicToJd,
+  jdToGregorian,
+  jdToHebrew,
+  jdToIslamic,
+  jdToJulian,
+  jdToPersiana,
+  julianToJd,
+  jWday,
+  leapGregorian,
+  leapIslamic,
+  leapJulian,
+  leapPersiana,
+  persianaToJd
+}
 
 // Frequently-used constants
 
@@ -59,7 +88,7 @@ function mod (a: number, b: number) {
 
 // JWDAY -- Calculate day of week from Julian day
 
-export const WEEKDAYS = [
+const WEEKDAYS = [
   'Sunday',
   'Monday',
   'Tuesday',
@@ -69,7 +98,7 @@ export const WEEKDAYS = [
   'Saturday'
 ]
 
-export function jWday (j: number) {
+function jWday (j: number) {
   return mod(Math.floor(j + 1.5), 7)
 }
 
@@ -108,7 +137,6 @@ function obliqeq (jd: number) {
     obliquity (delta \Epsilon) as given in table 21.A of
     Meeus, "Astronomical Algorithms," first edition.  */
 
-// prettier-ignore
 const nutArgMult = [
   0, 0, 0, 0, 1, -2, 0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0,
   0, 1, 0, 0, -2, 1, 0, 2, 2, 0, 0, 0, 2, 1, 0, 0, 1, 2, 2, -2, -1, 0, 2, 2, -2,
@@ -125,7 +153,6 @@ const nutArgMult = [
   2, 0, 0, -2, 2, 2, 0, 0, 3, 2, 2, 2, -1, 0, 2, 2
 ]
 
-// prettier-ignore
 const nutArgCoeff = [
   -171996, -1742, 92095, 89, -13187, -16, 5736, -31, -2274, -2, 977, -5, 2062,
   2, -895, 5, 1426, -34, 54, -1, 712, 1, -7, 0, -517, 12, 224, -6, -386, -4,
@@ -208,7 +235,6 @@ function nutation (jd: number) {
 /*  Table of observed Delta T values at the beginning of
     even numbered years from 1620 through 2002.  */
 
-// prettier-ignore
 const deltaTtab = [
   121, 112, 103, 95, 88, 82, 77, 72, 68, 63, 60, 56, 53, 51, 48, 46, 44, 42, 40,
   38, 35, 33, 31, 29, 26, 24, 22, 20, 18, 16, 14, 12, 11, 10, 9, 8, 7, 7, 7, 7,
@@ -257,7 +283,6 @@ function deltat (year: number) {
 
 // Periodic terms to obtain true time
 
-// prettier-ignore
 const EquinoxpTerms = [
   485, 324.96, 1934.136, 203, 337.23, 32964.467, 199, 342.08, 20.186, 182,
   27.85, 445267.112, 156, 73.14, 45036.886, 136, 171.52, 22518.443, 77, 222.54,
@@ -422,11 +447,11 @@ function equationOfTime (jd: number) {
                 This program is in the public domain.
 */
 
-export const NORM_LEAP = ['Normal year', 'Leap year']
+const NORM_LEAP = ['Normal year', 'Leap year']
 
 // LEAP_GREGORIAN -- Is a given year in the Gregorian calendar a leap year?
 
-export function leapGregorian (year: number) {
+function leapGregorian (year: number) {
   return year % 4 === 0 && !(year % 100 === 0 && year % 400 !== 0)
 }
 
@@ -434,7 +459,7 @@ export function leapGregorian (year: number) {
 
 const GREGORIAN_EPOCH = 1721425.5
 
-export function gregorianToJd (year: number, month: number, day: number) {
+function gregorianToJd (year: number, month: number, day: number) {
   return (
     GREGORIAN_EPOCH -
     1 +
@@ -452,7 +477,7 @@ export function gregorianToJd (year: number, month: number, day: number) {
 
 // JD_TO_GREGORIAN -- Calculate Gregorian calendar date from Julian day
 
-export function jdToGregorian (jd: number) {
+function jdToGregorian (jd: number) {
   let year
 
   const wjd = Math.floor(jd - 0.5) + 0.5
@@ -479,11 +504,11 @@ export function jdToGregorian (jd: number) {
 
 // JULIAN_TO_JD -- Determine Julian day number from Julian calendar date
 
-export function leapJulian (year: number) {
+function leapJulian (year: number) {
   return mod(year, 4) === (year > 0 ? 0 : 3)
 }
 
-export function julianToJd (year: number, month: number, day: number) {
+function julianToJd (year: number, month: number, day: number) {
   // Adjust negative common era years to the zero-based notation we use.
 
   if (year < 1) {
@@ -507,7 +532,7 @@ export function julianToJd (year: number, month: number, day: number) {
 
 // JD_TO_JULIAN -- Calculate Julian calendar date from Julian day
 
-export function jdToJulian (td: number) {
+function jdToJulian (td: number) {
   let year
 
   td += 0.5
@@ -540,7 +565,7 @@ const HEBREW_EPOCH = 347995.5
 
 // Is a given Hebrew year a leap year ?
 
-export function hebrewLeap (year: number) {
+function hebrewLeap (year: number) {
   return mod(year * 7 + 1, 19) < 7
 }
 
@@ -576,7 +601,7 @@ function hebrewDelay2 (year: number) {
 
 // How many days are in a Hebrew year?
 
-export function hebrewYearDays (year: number) {
+function hebrewYearDays (year: number) {
   return hebrewToJd(year + 1, 7, 1) - hebrewToJd(year, 7, 1)
 }
 
@@ -620,7 +645,7 @@ function hebrewMonthDays (year: number, month: number) {
 
 // Finally, wrap it all up into...
 
-export function hebrewToJd (year: number, month: number, day: number) {
+function hebrewToJd (year: number, month: number, day: number) {
   let jd, mon
 
   const months = hebrewYearMonths(year)
@@ -647,7 +672,7 @@ export function hebrewToJd (year: number, month: number, day: number) {
                     the inverse function, and this is very
                     slow.  */
 
-export function jdToHebrew (jd: number) {
+function jdToHebrew (jd: number) {
   let year, month, i
 
   jd = Math.floor(jd) + 0.5
@@ -667,14 +692,14 @@ export function jdToHebrew (jd: number) {
 
 // LEAP_ISLAMIC -- Is a given year a leap year in the Islamic calendar?
 
-export function leapIslamic (year: number) {
+function leapIslamic (year: number) {
   return (year * 11 + 14) % 30 < 11
 }
 
 // ISLAMIC_TO_JD -- Determine Julian day from Islamic date
 
 const ISLAMIC_EPOCH = 1948439.5
-export const ISLAMIC_WEEKDAYS = [
+const ISLAMIC_WEEKDAYS = [
   'al-Ahad',
   'al-Ithnayn',
   'al-Thulatha\u2019',
@@ -684,7 +709,7 @@ export const ISLAMIC_WEEKDAYS = [
   'al-Sabt'
 ]
 
-export function islamicToJd (year: number, month: number, day: number) {
+function islamicToJd (year: number, month: number, day: number) {
   return (
     day +
     Math.ceil(29.5 * (month - 1)) +
@@ -697,7 +722,7 @@ export function islamicToJd (year: number, month: number, day: number) {
 
 // JD_TO_ISLAMIC -- Calculate Islamic date from Julian day
 
-export function jdToIslamic (jd: number) {
+function jdToIslamic (jd: number) {
   jd = Math.floor(jd) + 0.5
   const year = Math.floor((30 * (jd - ISLAMIC_EPOCH) + 10646) / 10631)
   const month = Math.min(
@@ -755,7 +780,7 @@ function tehranEquinoxJd (year: number) {
 */
 
 const PERSIAN_EPOCH = 1948320.5
-export const PERSIAN_WEEKDAYS = [
+const PERSIAN_WEEKDAYS = [
   'Yekshanbeh',
   'Doshanbeh',
   'Sehshanbeh',
@@ -789,7 +814,7 @@ function persianaYear (jd: number) {
 /*  JD_TO_PERSIANA -- Calculate date in the Persian astronomical
                       calendar from Julian day.  */
 
-export function jdToPersiana (jd: number) {
+function jdToPersiana (jd: number) {
   let day
 
   jd = Math.floor(jd) + 0.5
@@ -808,7 +833,7 @@ export function jdToPersiana (jd: number) {
 /*  PERSIANA_TO_JD -- Obtain Julian day from a given Persian
                       astronomical calendar date.  */
 
-export function persianaToJd (year: number, month: number, day: number) {
+function persianaToJd (year: number, month: number, day: number) {
   let adr, guess
 
   guess = PERSIAN_EPOCH - 1 + TropicalYear * (year - 1 - 1)
@@ -828,6 +853,6 @@ export function persianaToJd (year: number, month: number, day: number) {
 /*  LEAP_PERSIANA -- Is a given year a leap year in the Persian
                      astronomical calendar?  */
 
-export function leapPersiana (year: number) {
+function leapPersiana (year: number) {
   return persianaToJd(year + 1, 1, 1) - persianaToJd(year, 1, 1) > 365
 }

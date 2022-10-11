@@ -118,11 +118,10 @@ const oterms = [
 ]
 
 function obliqeq (jd: number) {
-  let eps: number, u: number, v: number
+  const u = (jd - J2000) / (JulianCentury * 100)
+  let v = u
 
-  v = u = (jd - J2000) / (JulianCentury * 100)
-
-  eps = 23 + 26 / 60.0 + 21.448 / 3600.0
+  let eps = 23 + 26 / 60.0 + 21.448 / 3600.0
 
   if (Math.abs(u) < 1.0) {
     for (let i = 0; i < 10; i++) {
@@ -251,14 +250,14 @@ const deltaTtab = [
 ]
 
 function deltat (year: number) {
-  let dt, f, i, t
+  let dt: number
 
   if (year >= 1620 && year <= 2000) {
-    i = Math.floor((year - 1620) / 2)
-    f = (year - 1620) / 2 - i // Fractional part of year
+    const i = Math.floor((year - 1620) / 2)
+    const f = (year - 1620) / 2 - i // Fractional part of year
     dt = deltaTtab[i] + (deltaTtab[i + 1] - deltaTtab[i]) * f
   } else {
-    t = (year - 2000) / 100
+    const t = (year - 2000) / 100
     if (year < 948) {
       dt = 2177 + 497 * t + 44.1 * t * t
     } else {
@@ -309,7 +308,8 @@ const JDE0tab2000 = [
 ]
 
 function equinox (year: number, which: number) {
-  let i, j, JDE0tab, S, Y
+  let JDE0tab: number[][]
+  let Y: number
 
   /*  Initialise terms for mean equinox and solstices. We
       have two sets: one for years prior to 1000 and a second
@@ -336,8 +336,8 @@ function equinox (year: number, which: number) {
 
   // Sum the periodic terms for time T
 
-  S = 0
-  for (i = j = 0; i < 24; i++) {
+  let S = 0
+  for (let i = 0, j = 0; i < 24; i++) {
     S +=
       EquinoxpTerms[j] * dcos(EquinoxpTerms[j + 1] + EquinoxpTerms[j + 2] * T)
     j += 3
@@ -355,15 +355,13 @@ function equinox (year: number, which: number) {
               variety of other contexts.  */
 
 function sunpos (jd: number) {
-  let L0, M, Alpha, AlphaApp
-
   const T = (jd - J2000) / JulianCentury
   const T2 = T * T
 
-  L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2
+  let L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2
   L0 = fixangle(L0)
 
-  M = 357.52911 + 35999.05029 * T + -0.0001537 * T2
+  let M = 357.52911 + 35999.05029 * T + -0.0001537 * T2
   M = fixangle(M)
 
   const e = 0.016708634 + -0.000042037 * T + -0.0000001267 * T2
@@ -381,12 +379,12 @@ function sunpos (jd: number) {
   const epsilon0 = obliqeq(jd)
   const epsilon = epsilon0 + 0.00256 * dcos(Omega)
 
-  Alpha = rtd(Math.atan2(dcos(epsilon0) * dsin(sunLong), dcos(sunLong)))
+  let Alpha = rtd(Math.atan2(dcos(epsilon0) * dsin(sunLong), dcos(sunLong)))
   Alpha = fixangle(Alpha)
 
   const Delta = rtd(Math.asin(dsin(epsilon0) * dsin(sunLong)))
 
-  AlphaApp = rtd(Math.atan2(dcos(epsilon) * dsin(Lambda), dcos(Lambda)))
+  let AlphaApp = rtd(Math.atan2(dcos(epsilon) * dsin(Lambda), dcos(Lambda)))
   AlphaApp = fixangle(AlphaApp)
 
   const DeltaApp = rtd(Math.asin(dsin(epsilon) * dsin(Lambda)))
@@ -413,11 +411,9 @@ function sunpos (jd: number) {
                       a day.  */
 
 function equationOfTime (jd: number) {
-  let E, L0
-
   const tau = (jd - J2000) / JulianMillennium
 
-  L0 =
+  let L0 =
     280.4664567 +
     360007.6982779 * tau +
     0.03032028 * tau * tau +
@@ -431,7 +427,7 @@ function equationOfTime (jd: number) {
   const deltaPsi = nutation(jd)[0]
   const epsilon = obliqeq(jd) + nutation(jd)[1]
 
-  E = L0 + -0.0057183 + -alpha + deltaPsi * dcos(epsilon)
+  let E = L0 + -0.0057183 + -alpha + deltaPsi * dcos(epsilon)
   E = E - 20.0 * Math.floor(E / 20.0)
   E = E / (24 * 60)
 
@@ -646,10 +642,9 @@ function hebrewMonthDays (year: number, month: number) {
 // Finally, wrap it all up into...
 
 function hebrewToJd (year: number, month: number, day: number) {
-  let jd, mon
-
   const months = hebrewYearMonths(year)
-  jd = HEBREW_EPOCH + hebrewDelay1(year) + hebrewDelay2(year) + day + 1
+  let jd = HEBREW_EPOCH + hebrewDelay1(year) + hebrewDelay2(year) + day + 1
+  let mon: number
 
   if (month < 7) {
     for (mon = 7; mon <= months; mon++) {
@@ -673,16 +668,16 @@ function hebrewToJd (year: number, month: number, day: number) {
                     slow.  */
 
 function jdToHebrew (jd: number) {
-  let year, month, i
+  let i: number
 
   jd = Math.floor(jd) + 0.5
   const count = Math.floor(((jd - HEBREW_EPOCH) * 98496.0) / 35975351.0)
-  year = count - 1
+  let year = count - 1
   for (i = count; jd >= hebrewToJd(i, 7, 1); i++) {
     year++
   }
   const first = jd < hebrewToJd(year, 1, 1) ? 7 : 1
-  month = first
+  let month = first
   for (i = first; jd > hebrewToJd(year, i, hebrewMonthDays(year, i)); i++) {
     month++
   }
@@ -834,10 +829,8 @@ function jdToPersiana (jd: number) {
                       astronomical calendar date.  */
 
 function persianaToJd (year: number, month: number, day: number) {
-  let adr, guess
-
-  guess = PERSIAN_EPOCH - 1 + TropicalYear * (year - 1 - 1)
-  adr = [year - 1, 0]
+  let guess = PERSIAN_EPOCH - 1 + TropicalYear * (year - 1 - 1)
+  let adr = [year - 1, 0]
 
   while (adr[0] < year) {
     adr = persianaYear(guess)

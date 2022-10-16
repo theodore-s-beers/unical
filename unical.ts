@@ -3,7 +3,7 @@
 // over the years...
 
 //
-// EXPORTS
+// Exports
 //
 
 export {
@@ -70,8 +70,6 @@ function gregorianToJd (year: number, month: number, day: number) {
 // JD_TO_GREGORIAN -- Calculate Gregorian calendar date from Julian day
 
 function jdToGregorian (jd: number) {
-  let year
-
   const wjd = Math.floor(jd - 0.5) + 0.5
   const depoch = wjd - GREGORIAN_EPOCH
   const quadricent = Math.floor(depoch / 146097)
@@ -81,7 +79,7 @@ function jdToGregorian (jd: number) {
   const quad = Math.floor(dcent / 1461)
   const dquad = mod(dcent, 1461)
   const yindex = Math.floor(dquad / 365)
-  year = quadricent * 400 + cent * 100 + quad * 4 + yindex
+  let year = quadricent * 400 + cent * 100 + quad * 4 + yindex
   if (!(cent === 4 || yindex === 4)) {
     year++
   }
@@ -125,8 +123,6 @@ function julianToJd (year: number, month: number, day: number) {
 // JD_TO_JULIAN -- Calculate Julian calendar date from Julian day
 
 function jdToJulian (td: number) {
-  let year
-
   td += 0.5
   const z = Math.floor(td)
 
@@ -137,7 +133,7 @@ function jdToJulian (td: number) {
   const e = Math.floor((b - d) / 30.6001)
 
   const month = Math.floor(e < 14 ? e - 1 : e - 13)
-  year = Math.floor(month > 2 ? c - 4716 : c - 4715)
+  let year = Math.floor(month > 2 ? c - 4716 : c - 4715)
   const day = b - d - Math.floor(30.6001 * e)
 
   /*  If year is less than 1, subtract one to convert from
@@ -383,20 +379,20 @@ const PERSIAN_WEEKDAYS = [
 
 function persianaYear (jd: number) {
   let guess = jdToGregorian(jd)[0] - 2
-  let lasteq
-  let nexteq
 
-  lasteq = tehranEquinoxJd(guess)
+  let lasteq = tehranEquinoxJd(guess)
   while (lasteq > jd) {
     guess--
     lasteq = tehranEquinoxJd(guess)
   }
-  nexteq = lasteq - 1
+
+  let nexteq = lasteq - 1
   while (!(lasteq <= jd && jd < nexteq)) {
     lasteq = nexteq
     guess++
     nexteq = tehranEquinoxJd(guess)
   }
+
   const adr = Math.round((lasteq - PERSIAN_EPOCH) / TropicalYear) + 1
 
   return [adr, lasteq]
@@ -406,13 +402,11 @@ function persianaYear (jd: number) {
                       calendar from Julian day.  */
 
 function jdToPersiana (jd: number) {
-  let day
-
   jd = Math.floor(jd) + 0.5
   const adr = persianaYear(jd)
   const year = adr[0]
   const equinox = adr[1]
-  day = Math.floor((jd - equinox) / 30) + 1
+  let day = Math.floor((jd - equinox) / 30) + 1
 
   const yday = Math.floor(jd) - persianaToJd(year, 1, 1) + 1
   const month = yday <= 186 ? Math.ceil(yday / 31) : Math.ceil((yday - 6) / 30)
@@ -592,16 +586,12 @@ const nutArgCoeff = [
                 giving (deltaPsi, deltaEpsilon) in degrees.  */
 
 function nutation (jd: number) {
-  let i
-  let j
   const t = (jd - 2451545.0) / 36525.0
-  let t2
+  const t2 = Math.pow(t, 2)
+  const t3 = Math.pow(t, 3)
   const ta = []
   let dp = 0
   let de = 0
-  let ang
-
-  const t3 = t * (t2 = t * t)
 
   /*  Calculate angles. The correspondence between the elements
       of our array and the terms cited in Meeus are:
@@ -619,15 +609,15 @@ function nutation (jd: number) {
   /*  Range reduce the angles in case the sine and cosine functions
       don't do it as accurately or quickly.  */
 
-  for (i = 0; i < 5; i++) {
+  for (let i = 0; i < 5; i++) {
     ta[i] = fixangr(ta[i])
   }
 
   const to10 = t / 10.0
 
-  for (i = 0; i < 63; i++) {
-    ang = 0
-    for (j = 0; j < 5; j++) {
+  for (let i = 0; i < 63; i++) {
+    let ang = 0
+    for (let j = 0; j < 5; j++) {
       if (nutArgMult[i * 5 + j] !== 0) {
         ang += nutArgMult[i * 5 + j] * ta[j]
       }

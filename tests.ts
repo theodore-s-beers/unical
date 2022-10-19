@@ -1,13 +1,13 @@
 import { assertEquals } from 'https://deno.land/std@0.127.0/testing/asserts.ts'
 import {
   leapGregorian,
-  gregorianToJd,
+  gregorianToJD,
   leapJulian,
   hebrewLeap,
-  islamicToJd,
+  islamicToJD,
   jdToJulian,
   jdToIslamic,
-  julianToJd
+  julianToJD
 } from './unical.ts'
 
 Deno.test('gregorian 2020 leap', () => {
@@ -31,7 +31,7 @@ Deno.test('hebrew 4321 leap', () => {
 })
 
 Deno.test('amasya gregorian to julian', () => {
-  const jd = gregorianToJd(1555, 6, 8)
+  const jd = gregorianToJD(1555, 6, 8)
   const [year, month, day] = jdToJulian(jd)
   assertEquals(year, 1555)
   assertEquals(month, 5)
@@ -39,7 +39,7 @@ Deno.test('amasya gregorian to julian', () => {
 })
 
 Deno.test('amasya julian to islamic', () => {
-  const jd = julianToJd(1555, 5, 29)
+  const jd = julianToJD(1555, 5, 29)
   const [year, month, day] = jdToIslamic(jd)
   assertEquals(year, 962)
   assertEquals(month, 7)
@@ -47,7 +47,7 @@ Deno.test('amasya julian to islamic', () => {
 })
 
 Deno.test('suleymaniye islamic to julian', () => {
-  const jd = islamicToJd(957, 5, 26)
+  const jd = islamicToJD(957, 5, 26)
   const [year, month, day] = jdToJulian(jd)
   assertEquals(year, 1550)
   assertEquals(month, 6)

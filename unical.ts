@@ -11,23 +11,23 @@ export {
   NORM_LEAP,
   PERSIAN_WEEKDAYS,
   WEEKDAYS,
-  gregorianToJd,
+  gregorianToJD,
   hebrewLeap,
-  hebrewToJd,
+  hebrewToJD,
   hebrewYearDays,
-  islamicToJd,
+  islamicToJD,
   jdToGregorian,
   jdToHebrew,
   jdToIslamic,
   jdToJulian,
-  jdToPersiana,
-  julianToJd,
-  jWday,
+  jdToPersianA,
+  julianToJD,
+  jWeekday,
   leapGregorian,
   leapIslamic,
   leapJulian,
-  leapPersiana,
-  persianaToJd
+  leapPersianA,
+  persianAToJd
 }
 
 /*
@@ -51,7 +51,7 @@ function leapGregorian (year: number) {
 
 const GREGORIAN_EPOCH = 1721425.5
 
-function gregorianToJd (year: number, month: number, day: number) {
+function gregorianToJD (year: number, month: number, day: number) {
   return (
     GREGORIAN_EPOCH -
     1 +
@@ -71,23 +71,23 @@ function gregorianToJd (year: number, month: number, day: number) {
 
 function jdToGregorian (jd: number) {
   const wjd = Math.floor(jd - 0.5) + 0.5
-  const depoch = wjd - GREGORIAN_EPOCH
-  const quadricent = Math.floor(depoch / 146097)
-  const dqc = mod(depoch, 146097)
+  const dEpoch = wjd - GREGORIAN_EPOCH
+  const quadricent = Math.floor(dEpoch / 146097)
+  const dqc = mod(dEpoch, 146097)
   const cent = Math.floor(dqc / 36524)
-  const dcent = mod(dqc, 36524)
-  const quad = Math.floor(dcent / 1461)
-  const dquad = mod(dcent, 1461)
-  const yindex = Math.floor(dquad / 365)
-  let year = quadricent * 400 + cent * 100 + quad * 4 + yindex
-  if (!(cent === 4 || yindex === 4)) {
+  const dCent = mod(dqc, 36524)
+  const quad = Math.floor(dCent / 1461)
+  const dQuad = mod(dCent, 1461)
+  const yIndex = Math.floor(dQuad / 365)
+  let year = quadricent * 400 + cent * 100 + quad * 4 + yIndex
+  if (!(cent === 4 || yIndex === 4)) {
     year++
   }
-  const yearday = wjd - gregorianToJd(year, 1, 1)
-  const leapadj =
-    wjd < gregorianToJd(year, 3, 1) ? 0 : leapGregorian(year) ? 1 : 2
-  const month = Math.floor(((yearday + leapadj) * 12 + 373) / 367)
-  const day = wjd - gregorianToJd(year, month, 1) + 1
+  const yearDay = wjd - gregorianToJD(year, 1, 1)
+  const leapAdj =
+    wjd < gregorianToJD(year, 3, 1) ? 0 : leapGregorian(year) ? 1 : 2
+  const month = Math.floor(((yearDay + leapAdj) * 12 + 373) / 367)
+  const day = wjd - gregorianToJD(year, month, 1) + 1
 
   return [year, month, day]
 }
@@ -98,7 +98,7 @@ function leapJulian (year: number) {
   return mod(year, 4) === (year > 0 ? 0 : 3)
 }
 
-function julianToJd (year: number, month: number, day: number) {
+function julianToJD (year: number, month: number, day: number) {
   // Adjust negative common era years to the zero-based notation we use.
 
   if (year < 1) {
@@ -190,7 +190,7 @@ function hebrewDelay2 (year: number) {
 // How many days are in a Hebrew year?
 
 function hebrewYearDays (year: number) {
-  return hebrewToJd(year + 1, 7, 1) - hebrewToJd(year, 7, 1)
+  return hebrewToJD(year + 1, 7, 1) - hebrewToJD(year, 7, 1)
 }
 
 // How many days are in a given month of a given year
@@ -233,7 +233,7 @@ function hebrewMonthDays (year: number, month: number) {
 
 // Finally, wrap it all up into...
 
-function hebrewToJd (year: number, month: number, day: number) {
+function hebrewToJD (year: number, month: number, day: number) {
   const months = hebrewYearMonths(year)
   let jd = HEBREW_EPOCH + hebrewDelay1(year) + hebrewDelay2(year) + day + 1
   let mon: number
@@ -265,15 +265,15 @@ function jdToHebrew (jd: number) {
   jd = Math.floor(jd) + 0.5
   const count = Math.floor(((jd - HEBREW_EPOCH) * 98496.0) / 35975351.0)
   let year = count - 1
-  for (i = count; jd >= hebrewToJd(i, 7, 1); i++) {
+  for (i = count; jd >= hebrewToJD(i, 7, 1); i++) {
     year++
   }
-  const first = jd < hebrewToJd(year, 1, 1) ? 7 : 1
+  const first = jd < hebrewToJD(year, 1, 1) ? 7 : 1
   let month = first
-  for (i = first; jd > hebrewToJd(year, i, hebrewMonthDays(year, i)); i++) {
+  for (i = first; jd > hebrewToJD(year, i, hebrewMonthDays(year, i)); i++) {
     month++
   }
-  const day = jd - hebrewToJd(year, month, 1) + 1
+  const day = jd - hebrewToJD(year, month, 1) + 1
   return [year, month, day]
 }
 
@@ -296,7 +296,7 @@ const ISLAMIC_WEEKDAYS = [
   'al-Sabt'
 ]
 
-function islamicToJd (year: number, month: number, day: number) {
+function islamicToJD (year: number, month: number, day: number) {
   return (
     day +
     Math.ceil(29.5 * (month - 1)) +
@@ -314,9 +314,9 @@ function jdToIslamic (jd: number) {
   const year = Math.floor((30 * (jd - ISLAMIC_EPOCH) + 10646) / 10631)
   const month = Math.min(
     12,
-    Math.ceil((jd - (29 + islamicToJd(year, 1, 1))) / 29.5) + 1
+    Math.ceil((jd - (29 + islamicToJD(year, 1, 1))) / 29.5) + 1
   )
-  const day = jd - islamicToJd(year, month, 1) + 1
+  const day = jd - islamicToJD(year, month, 1) + 1
   return [year, month, day]
 }
 
@@ -329,13 +329,13 @@ function tehranEquinox (year: number) {
   const equJED = equinox(year, 0)
 
   // Correct for delta T to obtain Universal time
-  const equJD = equJED - deltat(year) / (24 * 60 * 60)
+  const equJD = equJED - deltaT(year) / (24 * 60 * 60)
 
   // Apply the equation of time to yield the apparent time at Greenwich
   const equAPP = equJD + equationOfTime(equJED)
 
   /*  Finally, we must correct for the constant difference between
-        the Greenwich meridian andthe time zone standard for
+        the Greenwich meridian and the time zone standard for
         Iran Standard time, 52°30' to the East.  */
 
   const dtTehran = (52 + 30 / 60.0 + 0 / (60.0 * 60.0)) / 360
@@ -349,7 +349,7 @@ function tehranEquinox (year: number) {
                          meridian, occurred for a given Gregorian
                          year.  */
 
-function tehranEquinoxJd (year: number) {
+function tehranEquinoxJD (year: number) {
   const ep = tehranEquinox(year)
   const epg = Math.floor(ep)
 
@@ -373,44 +373,44 @@ const PERSIAN_WEEKDAYS = [
   'Sehshanbeh',
   'Chaharshanbeh',
   'Panjshanbeh',
-  'Jom\u2018eh',
+  'Jom‘eh',
   'Shanbeh'
 ]
 
-function persianaYear (jd: number) {
+function persianAYear (jd: number) {
   let guess = jdToGregorian(jd)[0] - 2
 
-  let lasteq = tehranEquinoxJd(guess)
-  while (lasteq > jd) {
+  let lastEq = tehranEquinoxJD(guess)
+  while (lastEq > jd) {
     guess--
-    lasteq = tehranEquinoxJd(guess)
+    lastEq = tehranEquinoxJD(guess)
   }
 
-  let nexteq = lasteq - 1
-  while (!(lasteq <= jd && jd < nexteq)) {
-    lasteq = nexteq
+  let nextEq = lastEq - 1
+  while (!(lastEq <= jd && jd < nextEq)) {
+    lastEq = nextEq
     guess++
-    nexteq = tehranEquinoxJd(guess)
+    nextEq = tehranEquinoxJD(guess)
   }
 
-  const adr = Math.round((lasteq - PERSIAN_EPOCH) / TropicalYear) + 1
+  const adr = Math.round((lastEq - PERSIAN_EPOCH) / TropicalYear) + 1
 
-  return [adr, lasteq]
+  return [adr, lastEq]
 }
 
 /*  JD_TO_PERSIANA -- Calculate date in the Persian astronomical
                       calendar from Julian day.  */
 
-function jdToPersiana (jd: number) {
+function jdToPersianA (jd: number) {
   jd = Math.floor(jd) + 0.5
-  const adr = persianaYear(jd)
+  const adr = persianAYear(jd)
   const year = adr[0]
   const equinox = adr[1]
   let day = Math.floor((jd - equinox) / 30) + 1
 
-  const yday = Math.floor(jd) - persianaToJd(year, 1, 1) + 1
-  const month = yday <= 186 ? Math.ceil(yday / 31) : Math.ceil((yday - 6) / 30)
-  day = Math.floor(jd) - persianaToJd(year, month, 1) + 1
+  const yDay = Math.floor(jd) - persianAToJd(year, 1, 1) + 1
+  const month = yDay <= 186 ? Math.ceil(yDay / 31) : Math.ceil((yDay - 6) / 30)
+  day = Math.floor(jd) - persianAToJd(year, month, 1) + 1
 
   return [year, month, day]
 }
@@ -418,12 +418,12 @@ function jdToPersiana (jd: number) {
 /*  PERSIANA_TO_JD -- Obtain Julian day from a given Persian
                       astronomical calendar date.  */
 
-function persianaToJd (year: number, month: number, day: number) {
+function persianAToJd (year: number, month: number, day: number) {
   let guess = PERSIAN_EPOCH - 1 + TropicalYear * (year - 1 - 1)
   let adr = [year - 1, 0]
 
   while (adr[0] < year) {
-    adr = persianaYear(guess)
+    adr = persianAYear(guess)
     guess = adr[1] + (TropicalYear + 2)
   }
   const equinox = adr[1]
@@ -436,8 +436,8 @@ function persianaToJd (year: number, month: number, day: number) {
 /*  LEAP_PERSIANA -- Is a given year a leap year in the Persian
                      astronomical calendar?  */
 
-function leapPersiana (year: number) {
-  return persianaToJd(year + 1, 1, 1) - persianaToJd(year, 1, 1) > 365
+function leapPersianA (year: number) {
+  return persianAToJd(year + 1, 1, 1) - persianAToJd(year, 1, 1) > 365
 }
 
 /*
@@ -471,25 +471,25 @@ function rtd (r: number) {
 
 // FIXANGLE -- Range reduce angle in degrees
 
-function fixangle (a: number) {
+function fixAngle (a: number) {
   return a - 360.0 * Math.floor(a / 360.0)
 }
 
 // FIXANGR -- Range reduce angle in radians
 
-function fixangr (a: number) {
+function fixAngR (a: number) {
   return a - 2 * Math.PI * Math.floor(a / (2 * Math.PI))
 }
 
 // DSIN -- Sine of an angle in degrees
 
-function dsin (d: number) {
+function dSin (d: number) {
   return Math.sin(dtr(d))
 }
 
 // DCOS -- Cosine of an angle in degrees
 
-function dcos (d: number) {
+function dCos (d: number) {
   return Math.cos(dtr(d))
 }
 
@@ -501,6 +501,10 @@ function mod (a: number, b: number) {
 
 // JWDAY -- Calculate day of week from Julian day
 
+function jWeekday (j: number) {
+  return mod(Math.floor(j + 1.5), 7)
+}
+
 const WEEKDAYS = [
   'Sunday',
   'Monday',
@@ -511,26 +515,22 @@ const WEEKDAYS = [
   'Saturday'
 ]
 
-function jWday (j: number) {
-  return mod(Math.floor(j + 1.5), 7)
-}
+/*  OBLIQUEQ -- Calculate the obliquity of the ecliptic for a given
+                Julian date. This uses Laskar's tenth-degree
+                polynomial fit (J. Laskar, Astronomy and
+                Astrophysics, Vol. 157, page 68 [1986]) which is
+                accurate to within 0.01 arc second between AD 1000
+                and AD 3000, and within a few seconds of arc for
+                +/-10000 years around AD 2000. If we're outside the
+                range in which this fit is valid (deep time) we
+                simply return the J2000 value of the obliquity, which
+                happens to be almost precisely the mean.  */
 
-/*  OBLIQEQ -- Calculate the obliquity of the ecliptic for a given
-               Julian date. This uses Laskar's tenth-degree
-               polynomial fit (J. Laskar, Astronomy and
-               Astrophysics, Vol. 157, page 68 [1986]) which is
-               accurate to within 0.01 arc second between AD 1000
-               and AD 3000, and within a few seconds of arc for
-               +/-10000 years around AD 2000. If we're outside the
-               range in which this fit is valid (deep time) we
-               simply return the J2000 value of the obliquity, which
-               happens to be almost precisely the mean.  */
-
-const oterms = [
+const OTerms = [
   -4680.93, -1.55, 1999.25, -51.38, -249.67, -39.05, 7.12, 27.87, 5.79, 2.45
 ]
 
-function obliqeq (jd: number) {
+function obliqueQ (jd: number) {
   const u = (jd - J2000) / (JulianCentury * 100)
   let v = u
 
@@ -538,10 +538,11 @@ function obliqeq (jd: number) {
 
   if (Math.abs(u) < 1.0) {
     for (let i = 0; i < 10; i++) {
-      eps += (oterms[i] / 3600.0) * v
+      eps += (OTerms[i] / 3600.0) * v
       v *= u
     }
   }
+
   return eps
 }
 
@@ -549,7 +550,7 @@ function obliqeq (jd: number) {
     obliquity (delta \Epsilon) as given in table 21.A of
     Meeus, "Astronomical Algorithms," first edition.  */
 
-const nutArgMult = [
+const NutArgMult = [
   0, 0, 0, 0, 1, -2, 0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 0,
   0, 1, 0, 0, -2, 1, 0, 2, 2, 0, 0, 0, 2, 1, 0, 0, 1, 2, 2, -2, -1, 0, 2, 2, -2,
   0, 1, 0, 0, -2, 0, 0, 2, 1, 0, 0, -1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1, 0, 1, 2,
@@ -565,7 +566,7 @@ const nutArgMult = [
   2, 0, 0, -2, 2, 2, 0, 0, 3, 2, 2, 2, -1, 0, 2, 2
 ]
 
-const nutArgCoeff = [
+const NutArgCoeff = [
   -171996, -1742, 92095, 89, -13187, -16, 5736, -31, -2274, -2, 977, -5, 2062,
   2, -895, 5, 1426, -34, 54, -1, 712, 1, -7, 0, -517, 12, 224, -6, -386, -4,
   200, 0, -301, 0, 129, -1, 217, -5, -95, 3, -158, 0, 0, 0, 129, 1, -70, 0, 123,
@@ -610,7 +611,7 @@ function nutation (jd: number) {
       don't do it as accurately or quickly.  */
 
   for (let i = 0; i < 5; i++) {
-    ta[i] = fixangr(ta[i])
+    ta[i] = fixAngR(ta[i])
   }
 
   const to10 = t / 10.0
@@ -618,14 +619,14 @@ function nutation (jd: number) {
   for (let i = 0; i < 63; i++) {
     let ang = 0
     for (let j = 0; j < 5; j++) {
-      if (nutArgMult[i * 5 + j] !== 0) {
-        ang += nutArgMult[i * 5 + j] * ta[j]
+      if (NutArgMult[i * 5 + j] !== 0) {
+        ang += NutArgMult[i * 5 + j] * ta[j]
       }
     }
     dp +=
-      (nutArgCoeff[i * 4 + 0] + nutArgCoeff[i * 4 + 1] * to10) * Math.sin(ang)
+      (NutArgCoeff[i * 4 + 0] + NutArgCoeff[i * 4 + 1] * to10) * Math.sin(ang)
     de +=
-      (nutArgCoeff[i * 4 + 2] + nutArgCoeff[i * 4 + 3] * to10) * Math.cos(ang)
+      (NutArgCoeff[i * 4 + 2] + NutArgCoeff[i * 4 + 3] * to10) * Math.cos(ang)
   }
 
   /*  Return the result, converting from ten thousandths of arc
@@ -643,7 +644,7 @@ function nutation (jd: number) {
 /*  Table of observed Delta T values at the beginning of
     even numbered years from 1620 through 2002.  */
 
-const deltaTtab = [
+const DeltaTTab = [
   121, 112, 103, 95, 88, 82, 77, 72, 68, 63, 60, 56, 53, 51, 48, 46, 44, 42, 40,
   38, 35, 33, 31, 29, 26, 24, 22, 20, 18, 16, 14, 12, 11, 10, 9, 8, 7, 7, 7, 7,
   7, 7, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11,
@@ -658,13 +659,13 @@ const deltaTtab = [
   53.8, 54.9, 55.8, 56.9, 58.3, 60, 61.6, 63, 65, 66.6
 ]
 
-function deltat (year: number) {
+function deltaT (year: number) {
   let dt: number
 
   if (year >= 1620 && year <= 2000) {
     const i = Math.floor((year - 1620) / 2)
     const f = (year - 1620) / 2 - i // Fractional part of year
-    dt = deltaTtab[i] + (deltaTtab[i + 1] - deltaTtab[i]) * f
+    dt = DeltaTTab[i] + (DeltaTTab[i + 1] - DeltaTTab[i]) * f
   } else {
     const t = (year - 2000) / 100
     if (year < 948) {
@@ -691,7 +692,7 @@ function deltat (year: number) {
 
 // Periodic terms to obtain true time
 
-const EquinoxpTerms = [
+const EquinoxPTerms = [
   485, 324.96, 1934.136, 203, 337.23, 32964.467, 199, 342.08, 20.186, 182,
   27.85, 445267.112, 156, 73.14, 45036.886, 136, 171.52, 22518.443, 77, 222.54,
   65928.934, 74, 296.72, 3034.906, 70, 243.58, 9037.513, 58, 119.81, 33718.147,
@@ -720,7 +721,7 @@ function equinox (year: number, which: number) {
   let JDE0tab: number[][]
   let Y: number
 
-  /*  Initialise terms for mean equinox and solstices. We
+  /*  Initialize terms for mean equinox and solstices. We
       have two sets: one for years prior to 1000 and a second
       for subsequent years.  */
 
@@ -741,14 +742,14 @@ function equinox (year: number, which: number) {
 
   const T = (JDE0 - 2451545.0) / 36525
   const W = 35999.373 * T - 2.47
-  const deltaL = 1 + 0.0334 * dcos(W) + 0.0007 * dcos(2 * W)
+  const deltaL = 1 + 0.0334 * dCos(W) + 0.0007 * dCos(2 * W)
 
   // Sum the periodic terms for time T
 
   let S = 0
   for (let i = 0, j = 0; i < 24; i++) {
     S +=
-      EquinoxpTerms[j] * dcos(EquinoxpTerms[j + 1] + EquinoxpTerms[j + 2] * T)
+      EquinoxPTerms[j] * dCos(EquinoxPTerms[j + 1] + EquinoxPTerms[j + 2] * T)
     j += 3
   }
 
@@ -763,40 +764,40 @@ function equinox (year: number, which: number) {
               intermediate values because they are useful in a
               variety of other contexts.  */
 
-function sunpos (jd: number) {
+function sunPos (jd: number) {
   const T = (jd - J2000) / JulianCentury
   const T2 = T * T
 
   let L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2
-  L0 = fixangle(L0)
+  L0 = fixAngle(L0)
 
   let M = 357.52911 + 35999.05029 * T + -0.0001537 * T2
-  M = fixangle(M)
+  M = fixAngle(M)
 
   const e = 0.016708634 + -0.000042037 * T + -0.0000001267 * T2
 
   const C =
-    (1.914602 + -0.004817 * T + -0.000014 * T2) * dsin(M) +
-    (0.019993 - 0.000101 * T) * dsin(2 * M) +
-    0.000289 * dsin(3 * M)
+    (1.914602 + -0.004817 * T + -0.000014 * T2) * dSin(M) +
+    (0.019993 - 0.000101 * T) * dSin(2 * M) +
+    0.000289 * dSin(3 * M)
 
   const sunLong = L0 + C
   const sunAnomaly = M + C
-  const sunR = (1.000001018 * (1 - e * e)) / (1 + e * dcos(sunAnomaly))
+  const sunR = (1.000001018 * (1 - e * e)) / (1 + e * dCos(sunAnomaly))
   const Omega = 125.04 - 1934.136 * T
-  const Lambda = sunLong + -0.00569 + -0.00478 * dsin(Omega)
-  const epsilon0 = obliqeq(jd)
-  const epsilon = epsilon0 + 0.00256 * dcos(Omega)
+  const Lambda = sunLong + -0.00569 + -0.00478 * dSin(Omega)
+  const epsilon0 = obliqueQ(jd)
+  const epsilon = epsilon0 + 0.00256 * dCos(Omega)
 
-  let Alpha = rtd(Math.atan2(dcos(epsilon0) * dsin(sunLong), dcos(sunLong)))
-  Alpha = fixangle(Alpha)
+  let Alpha = rtd(Math.atan2(dCos(epsilon0) * dSin(sunLong), dCos(sunLong)))
+  Alpha = fixAngle(Alpha)
 
-  const Delta = rtd(Math.asin(dsin(epsilon0) * dsin(sunLong)))
+  const Delta = rtd(Math.asin(dSin(epsilon0) * dSin(sunLong)))
 
-  let AlphaApp = rtd(Math.atan2(dcos(epsilon) * dsin(Lambda), dcos(Lambda)))
-  AlphaApp = fixangle(AlphaApp)
+  let AlphaApp = rtd(Math.atan2(dCos(epsilon) * dSin(Lambda), dCos(Lambda)))
+  AlphaApp = fixAngle(AlphaApp)
 
-  const DeltaApp = rtd(Math.asin(dsin(epsilon) * dsin(Lambda)))
+  const DeltaApp = rtd(Math.asin(dSin(epsilon) * dSin(Lambda)))
 
   return [
     // Angular quantities are expressed in decimal degrees
@@ -815,9 +816,9 @@ function sunpos (jd: number) {
   ]
 }
 
-/*  EQUATIONOFTIME -- Compute equation of time for a given moment.
-                      Returns the equation of time as a fraction of
-                      a day.  */
+/*  EQUATION_OF_TIME -- Compute equation of time for a given moment.
+                        Returns the equation of time as a fraction of
+                        a day.  */
 
 function equationOfTime (jd: number) {
   const tau = (jd - J2000) / JulianMillennium
@@ -830,13 +831,13 @@ function equationOfTime (jd: number) {
     -((tau * tau * tau * tau) / 15300) +
     -((tau * tau * tau * tau * tau) / 2000000)
 
-  L0 = fixangle(L0)
+  L0 = fixAngle(L0)
 
-  const alpha = sunpos(jd)[10]
+  const alpha = sunPos(jd)[10]
   const deltaPsi = nutation(jd)[0]
-  const epsilon = obliqeq(jd) + nutation(jd)[1]
+  const epsilon = obliqueQ(jd) + nutation(jd)[1]
 
-  let E = L0 + -0.0057183 + -alpha + deltaPsi * dcos(epsilon)
+  let E = L0 + -0.0057183 + -alpha + deltaPsi * dCos(epsilon)
   E = E - 20.0 * Math.floor(E / 20.0)
   E = E / (24 * 60)
 

@@ -27,7 +27,7 @@ export {
   leapIslamic,
   leapJulian,
   leapPersianA,
-  persianAToJd
+  persianAToJD
 }
 
 /*
@@ -408,9 +408,9 @@ function jdToPersianA (jd: number) {
   const equinox = adr[1]
   let day = Math.floor((jd - equinox) / 30) + 1
 
-  const yDay = Math.floor(jd) - persianAToJd(year, 1, 1) + 1
+  const yDay = Math.floor(jd) - persianAToJD(year, 1, 1) + 1
   const month = yDay <= 186 ? Math.ceil(yDay / 31) : Math.ceil((yDay - 6) / 30)
-  day = Math.floor(jd) - persianAToJd(year, month, 1) + 1
+  day = Math.floor(jd) - persianAToJD(year, month, 1) + 1
 
   return [year, month, day]
 }
@@ -418,7 +418,7 @@ function jdToPersianA (jd: number) {
 /*  PERSIANA_TO_JD -- Obtain Julian day from a given Persian
                       astronomical calendar date.  */
 
-function persianAToJd (year: number, month: number, day: number) {
+function persianAToJD (year: number, month: number, day: number) {
   let guess = PERSIAN_EPOCH - 1 + TropicalYear * (year - 1 - 1)
   let adr = [year - 1, 0]
 
@@ -437,7 +437,7 @@ function persianAToJd (year: number, month: number, day: number) {
                      astronomical calendar?  */
 
 function leapPersianA (year: number) {
-  return persianAToJd(year + 1, 1, 1) - persianAToJd(year, 1, 1) > 365
+  return persianAToJD(year + 1, 1, 1) - persianAToJD(year, 1, 1) > 365
 }
 
 /*

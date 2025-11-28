@@ -1,8 +1,10 @@
 {
+  "extends": "@tsconfig/recommended/tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "skipLibCheck": true,
-    "strict": true
+    "declaration": true,
+    "module": "NodeNext",
+    "outDir": "./dist",
+    "target": "ES2022"
   },
-  "files": ["unical.ts"]
+  "files": ["index.ts"]
 }

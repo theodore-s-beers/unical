@@ -1,7 +1,18 @@
 {
   "name": "unical",
   "version": "0.1.0",
-  "description": "",
+  "description": "Date conversion library supporting several historical and modern calendars",
+  "keywords": [
+    "calendar",
+    "conversion",
+    "date",
+    "gregorian",
+    "julian",
+    "hebrew",
+    "islamic",
+    "persian",
+    "hijri"
+  ],
   "homepage": "https://github.com/theodore-s-beers/unical#readme",
   "bugs": {
     "url": "https://github.com/theodore-s-beers/unical/issues"

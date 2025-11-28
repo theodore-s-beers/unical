@@ -9,7 +9,7 @@ import {
   julianToJD,
   leapGregorian,
   leapJulian,
-} from "./unical.ts";
+} from "./index.ts";
 
 Deno.test("gregorian 2020 leap", () => {
   assertEquals(leapGregorian(2020), true);

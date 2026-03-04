@@ -403,14 +403,14 @@ function persianAYear(jd: number) {
 
 function jdToPersianA(jd: number) {
   jd = Math.floor(jd) + 0.5;
+  const jdFloored = Math.floor(jd);
+
   const adr = persianAYear(jd);
   const year = adr[0];
-  const equinox = adr[1];
-  let day = Math.floor((jd - equinox) / 30) + 1;
 
-  const yDay = Math.floor(jd) - persianAToJD(year, 1, 1) + 1;
+  const yDay = jdFloored - persianAToJD(year, 1, 1) + 1;
   const month = yDay <= 186 ? Math.ceil(yDay / 31) : Math.ceil((yDay - 6) / 30);
-  day = Math.floor(jd) - persianAToJD(year, month, 1) + 1;
+  const day = jdFloored - persianAToJD(year, month, 1) + 1;
 
   return [year, month, day];
 }

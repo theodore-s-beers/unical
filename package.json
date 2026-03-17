@@ -42,6 +42,7 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "lint": "prettier --check . && eslint .",
+    "prepare": "npm run build",
     "test": "deno test index.test.ts"
   },
   "devDependencies": {

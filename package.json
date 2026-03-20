@@ -7,52 +7,51 @@
     "conversion",
     "date",
     "gregorian",
-    "julian",
     "hebrew",
+    "hijri",
     "islamic",
-    "persian",
-    "hijri"
+    "julian",
+    "persian"
   ],
   "homepage": "https://github.com/theodore-s-beers/unical#readme",
   "bugs": {
     "url": "https://github.com/theodore-s-beers/unical/issues"
   },
+  "license": "MIT",
+  "author": "Theo Beers",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/theodore-s-beers/unical.git"
   },
-  "license": "MIT",
-  "author": "Theo Beers",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "scripts": {
     "build": "tsc",
     "check": "tsc --noEmit",
-    "format": "prettier --write .",
-    "lint": "prettier --check . && eslint .",
-    "prepare": "npm run build",
-    "test": "deno test index.test.ts"
+    "format": "oxfmt",
+    "lint": "oxfmt --check && oxlint",
+    "prepare": "tsc",
+    "test": "deno test index.test.ts",
+    "knip": "knip"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@tsconfig/recommended": "^1.0.13",
-    "eslint": "^10.0.2",
-    "globals": "^17.4.0",
-    "jiti": "^2.6.1",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "8.56.1"
+    "@types/node": "^25.5.0",
+    "knip": "^6.0.1",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "typescript": "^5.9.3"
   }
 }

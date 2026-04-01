@@ -41,17 +41,17 @@
     "build": "tsc",
     "check": "tsc --noEmit",
     "format": "oxfmt",
+    "knip": "knip",
     "lint": "oxfmt --check && oxlint",
     "prepare": "tsc",
-    "test": "deno test index.test.ts",
-    "knip": "knip"
+    "test": "deno test index.test.ts"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.13",
     "@types/node": "^25.5.0",
-    "knip": "^6.0.1",
-    "oxfmt": "^0.41.0",
-    "oxlint": "^1.56.0",
-    "typescript": "^5.9.3"
+    "knip": "^6.1.1",
+    "oxfmt": "^0.43.0",
+    "oxlint": "^1.58.0",
+    "typescript": "^6.0.2"
   }
 }

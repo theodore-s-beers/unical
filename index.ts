@@ -308,8 +308,10 @@ function islamicToJD(year: number, month: number, day: number) {
 function jdToIslamic(jd: number) {
   jd = Math.floor(jd) + 0.5;
   const year = Math.floor((30 * (jd - ISLAMIC_EPOCH) + 10646) / 10631);
-  const month = Math.min(12, Math.ceil((jd - (29 + islamicToJD(year, 1, 1))) / 29.5) + 1);
-  const day = jd - islamicToJD(year, month, 1) + 1;
+  const yearStart = islamicToJD(year, 1, 1);
+  const month = Math.min(12, Math.ceil((jd - (29 + yearStart)) / 29.5) + 1);
+  const monthStart = yearStart + Math.ceil(29.5 * (month - 1));
+  const day = jd - monthStart + 1;
   return [year, month, day];
 }
 

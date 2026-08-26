@@ -80,6 +80,21 @@ Deno.test("suleymaniye islamic to julian", () => {
   assertEquals([year, month, day], [1550, 6, 12]);
 });
 
+Deno.test("islamic dates round trip", () => {
+  const dates: [number, number, number][] = [
+    [1, 1, 1],
+    [2, 12, 30],
+    [957, 5, 26],
+    [1445, 12, 30],
+    [1446, 2, 29],
+    [1446, 3, 30],
+  ];
+
+  for (const date of dates) {
+    assertEquals(jdToIslamic(islamicToJD(...date)), date);
+  }
+});
+
 Deno.test("persian new year boundaries", () => {
   assertEquals(jdToPersianA(gregorianToJD(2024, 3, 19)), [1402, 12, 29]);
   assertEquals(jdToPersianA(gregorianToJD(2024, 3, 20)), [1403, 1, 1]);

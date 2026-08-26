@@ -6,9 +6,12 @@ import {
   islamicToJD,
   jdToIslamic,
   jdToJulian,
+  jdToPersianA,
   julianToJD,
   leapGregorian,
   leapJulian,
+  leapPersianA,
+  persianAToJD,
 } from "./index.ts";
 
 Deno.test("gregorian 2020 leap", () => {
@@ -43,4 +46,31 @@ Deno.test("suleymaniye islamic to julian", () => {
   const jd = islamicToJD(957, 5, 26);
   const [year, month, day] = jdToJulian(jd);
   assertEquals([year, month, day], [1550, 6, 12]);
+});
+
+Deno.test("persian new year boundaries", () => {
+  assertEquals(jdToPersianA(gregorianToJD(2024, 3, 19)), [1402, 12, 29]);
+  assertEquals(jdToPersianA(gregorianToJD(2024, 3, 20)), [1403, 1, 1]);
+  assertEquals(jdToPersianA(gregorianToJD(2025, 3, 20)), [1403, 12, 30]);
+  assertEquals(jdToPersianA(gregorianToJD(2025, 3, 21)), [1404, 1, 1]);
+});
+
+Deno.test("persian dates round trip", () => {
+  const dates: [number, number, number][] = [
+    [-1121, 3, 10],
+    [1, 1, 1],
+    [934, 3, 17],
+    [1402, 12, 29],
+    [1403, 12, 30],
+  ];
+
+  for (const date of dates) {
+    assertEquals(jdToPersianA(persianAToJD(...date)), date);
+  }
+});
+
+Deno.test("persian leap years", () => {
+  assertEquals(leapPersianA(1402), false);
+  assertEquals(leapPersianA(1403), true);
+  assertEquals(leapPersianA(1404), false);
 });

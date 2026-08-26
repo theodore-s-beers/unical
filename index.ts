@@ -360,24 +360,20 @@ const PERSIAN_WEEKDAYS = [
 ];
 
 function persianAYear(jd: number) {
-  let guess = jdToGregorian(jd)[0] - 2;
+  const gregorianYear = jdToGregorian(jd)[0];
+  let equinox = tehranEquinoxJD(gregorianYear);
 
-  let lastEq = tehranEquinoxJD(guess);
-  while (lastEq > jd) {
-    guess--;
-    lastEq = tehranEquinoxJD(guess);
+  if (equinox > jd) {
+    equinox = tehranEquinoxJD(gregorianYear - 1);
   }
 
-  let nextEq = lastEq - 1;
-  while (!(lastEq <= jd && jd < nextEq)) {
-    lastEq = nextEq;
-    guess++;
-    nextEq = tehranEquinoxJD(guess);
-  }
+  const year = Math.round((equinox - PERSIAN_EPOCH) / TropicalYear) + 1;
 
-  const adr = Math.round((lastEq - PERSIAN_EPOCH) / TropicalYear) + 1;
+  return [year, equinox];
+}
 
-  return [adr, lastEq];
+function persianMonthOffset(month: number) {
+  return month <= 7 ? (month - 1) * 31 : (month - 1) * 30 + 6;
 }
 
 /*  JD_TO_PERSIANA -- Calculate date in the Persian astronomical
@@ -387,12 +383,11 @@ function jdToPersianA(jd: number) {
   jd = Math.floor(jd) + 0.5;
   const jdFloored = Math.floor(jd);
 
-  const adr = persianAYear(jd);
-  const year = adr[0];
+  const [year, equinox] = persianAYear(jd);
 
-  const yDay = jdFloored - persianAToJD(year, 1, 1) + 1;
+  const yDay = jdFloored - equinox + 1;
   const month = yDay <= 186 ? Math.ceil(yDay / 31) : Math.ceil((yDay - 6) / 30);
-  const day = jdFloored - persianAToJD(year, month, 1) + 1;
+  const day = yDay - persianMonthOffset(month);
 
   return [year, month, day];
 }
@@ -401,17 +396,8 @@ function jdToPersianA(jd: number) {
                       astronomical calendar date.  */
 
 function persianAToJD(year: number, month: number, day: number) {
-  let guess = PERSIAN_EPOCH - 1 + TropicalYear * (year - 1 - 1);
-  let adr = [year - 1, 0];
-
-  while (adr[0] < year) {
-    adr = persianAYear(guess);
-    guess = adr[1] + (TropicalYear + 2);
-  }
-  const equinox = adr[1];
-
-  const jd = equinox + (month <= 7 ? (month - 1) * 31 : (month - 1) * 30 + 6) + (day - 1);
-  return jd;
+  const equinox = tehranEquinoxJD(year + 621);
+  return equinox + persianMonthOffset(month) + day - 1;
 }
 
 /*  LEAP_PERSIANA -- Is a given year a leap year in the Persian

@@ -3,7 +3,10 @@ import { assertEquals } from "jsr:@std/assert";
 import {
   gregorianToJD,
   hebrewLeap,
+  hebrewToJD,
+  hebrewYearDays,
   islamicToJD,
+  jdToHebrew,
   jdToIslamic,
   jdToJulian,
   jdToPersianA,
@@ -28,6 +31,35 @@ Deno.test("julian 1900 leap", () => {
 
 Deno.test("hebrew 4321 leap", () => {
   assertEquals(hebrewLeap(4321), true);
+});
+
+Deno.test("hebrew year and month boundaries", () => {
+  assertEquals(jdToHebrew(gregorianToJD(2023, 9, 15)), [5783, 6, 29]);
+  assertEquals(jdToHebrew(gregorianToJD(2023, 9, 16)), [5784, 7, 1]);
+  assertEquals(jdToHebrew(gregorianToJD(2024, 4, 8)), [5784, 13, 29]);
+  assertEquals(jdToHebrew(gregorianToJD(2024, 4, 9)), [5784, 1, 1]);
+});
+
+Deno.test("hebrew dates round trip", () => {
+  const dates: [number, number, number][] = [
+    [-100, 7, 1],
+    [1, 7, 1],
+    [5783, 12, 29],
+    [5784, 7, 1],
+    [5784, 12, 30],
+    [5784, 13, 1],
+    [5784, 1, 1],
+    [5784, 6, 29],
+  ];
+
+  for (const date of dates) {
+    assertEquals(jdToHebrew(hebrewToJD(...date)), date);
+  }
+});
+
+Deno.test("hebrew year lengths", () => {
+  assertEquals(hebrewYearDays(5783), 355);
+  assertEquals(hebrewYearDays(5784), 383);
 });
 
 Deno.test("amasya gregorian to julian", () => {

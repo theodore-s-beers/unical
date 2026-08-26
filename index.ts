@@ -177,10 +177,16 @@ function hebrewDelay2(year: number) {
   return next - present === 356 ? 2 : present - last === 382 ? 1 : 0;
 }
 
+// Julian day on which a Hebrew year begins (1 Tishri)
+
+function hebrewYearStart(year: number) {
+  return HEBREW_EPOCH + hebrewDelay1(year) + hebrewDelay2(year) + 2;
+}
+
 // How many days are in a Hebrew year?
 
 function hebrewYearDays(year: number) {
-  return hebrewToJD(year + 1, 7, 1) - hebrewToJD(year, 7, 1);
+  return hebrewYearStart(year + 1) - hebrewYearStart(year);
 }
 
 // How many days are in a given month of a given year
@@ -219,7 +225,7 @@ function hebrewMonthDays(year: number, month: number) {
 
 function hebrewToJD(year: number, month: number, day: number) {
   const months = hebrewYearMonths(year);
-  let jd = HEBREW_EPOCH + hebrewDelay1(year) + hebrewDelay2(year) + day + 1;
+  let jd = hebrewYearStart(year) + day - 1;
   let mon: number;
 
   if (month < 7) {
@@ -238,26 +244,32 @@ function hebrewToJD(year: number, month: number, day: number) {
   return jd;
 }
 
-/*  JD_TO_HEBREW -- Convert Julian date to Hebrew date.
-                    This works by making multiple calls to
-                    the inverse function, and this is very
-                    slow.  */
+// JD_TO_HEBREW -- Convert Julian date to Hebrew date.
 
 function jdToHebrew(jd: number) {
-  let i: number;
-
   jd = Math.floor(jd) + 0.5;
   const count = Math.floor(((jd - HEBREW_EPOCH) * 98496.0) / 35975351.0);
   let year = count - 1;
-  for (i = count; jd >= hebrewToJD(i, 7, 1); i++) {
+  for (let i = count; jd >= hebrewYearStart(i); i++) {
     year++;
   }
-  const first = jd < hebrewToJD(year, 1, 1) ? 7 : 1;
-  let month = first;
-  for (i = first; jd > hebrewToJD(year, i, hebrewMonthDays(year, i)); i++) {
+
+  const nisanStart = hebrewToJD(year, 1, 1);
+  const firstMonth = jd < nisanStart ? 7 : 1;
+  let month = firstMonth;
+  let monthStart = firstMonth === 7 ? hebrewYearStart(year) : nisanStart;
+
+  while (true) {
+    const nextMonthStart = monthStart + hebrewMonthDays(year, month);
+    if (jd < nextMonthStart) {
+      break;
+    }
+
     month++;
+    monthStart = nextMonthStart;
   }
-  const day = jd - hebrewToJD(year, month, 1) + 1;
+
+  const day = jd - monthStart + 1;
   return [year, month, day];
 }
 

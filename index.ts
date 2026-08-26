@@ -6,6 +6,8 @@
 // Exports
 //
 
+export type CalendarDate = [year: number, month: number, day: number];
+
 export {
   ISLAMIC_WEEKDAYS,
   NORM_LEAP,
@@ -65,7 +67,7 @@ function gregorianToJD(year: number, month: number, day: number) {
 
 // JD_TO_GREGORIAN -- Calculate Gregorian calendar date from Julian day
 
-function jdToGregorian(jd: number) {
+function jdToGregorian(jd: number): CalendarDate {
   const wjd = Math.floor(jd - 0.5) + 0.5;
   const dEpoch = wjd - GREGORIAN_EPOCH;
   const quadricent = Math.floor(dEpoch / 146097);
@@ -112,7 +114,7 @@ function julianToJD(year: number, month: number, day: number) {
 
 // JD_TO_JULIAN -- Calculate Julian calendar date from Julian day
 
-function jdToJulian(td: number) {
+function jdToJulian(td: number): CalendarDate {
   td += 0.5;
   const z = Math.floor(td);
 
@@ -246,7 +248,7 @@ function hebrewToJD(year: number, month: number, day: number) {
 
 // JD_TO_HEBREW -- Convert Julian date to Hebrew date.
 
-function jdToHebrew(jd: number) {
+function jdToHebrew(jd: number): CalendarDate {
   jd = Math.floor(jd) + 0.5;
   const count = Math.floor(((jd - HEBREW_EPOCH) * 98496.0) / 35975351.0);
   let year = count - 1;
@@ -305,7 +307,7 @@ function islamicToJD(year: number, month: number, day: number) {
 
 // JD_TO_ISLAMIC -- Calculate Islamic date from Julian day
 
-function jdToIslamic(jd: number) {
+function jdToIslamic(jd: number): CalendarDate {
   jd = Math.floor(jd) + 0.5;
   const year = Math.floor((30 * (jd - ISLAMIC_EPOCH) + 10646) / 10631);
   const yearStart = islamicToJD(year, 1, 1);
@@ -393,7 +395,7 @@ function persianMonthOffset(month: number) {
 /*  JD_TO_PERSIANA -- Calculate date in the Persian astronomical
                       calendar from Julian day.  */
 
-function jdToPersianA(jd: number) {
+function jdToPersianA(jd: number): CalendarDate {
   jd = Math.floor(jd) + 0.5;
   const jdFloored = Math.floor(jd);
 

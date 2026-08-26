@@ -704,13 +704,9 @@ function equinox(year: number, which: number) {
   return JDE;
 }
 
-/*  SUNPOS -- Position of the Sun. Please see the comments
-              on the return statement at the end of this function
-              which describe the array it returns. We return
-              intermediate values because they are useful in a
-              variety of other contexts.  */
+// Calculate the Sun's apparent right ascension in decimal degrees.
 
-function sunPos(jd: number) {
+function sunApparentRightAscension(jd: number) {
   const T = (jd - J2000) / JulianCentury;
   const T2 = T * T;
 
@@ -720,46 +716,18 @@ function sunPos(jd: number) {
   let M = 357.52911 + 35999.05029 * T + -0.0001537 * T2;
   M = fixAngle(M);
 
-  const e = 0.016708634 + -0.000042037 * T + -0.0000001267 * T2;
-
   const C =
     (1.914602 + -0.004817 * T + -0.000014 * T2) * dSin(M) +
     (0.019993 - 0.000101 * T) * dSin(2 * M) +
     0.000289 * dSin(3 * M);
 
   const sunLong = L0 + C;
-  const sunAnomaly = M + C;
-  const sunR = (1.000001018 * (1 - e * e)) / (1 + e * dCos(sunAnomaly));
   const Omega = 125.04 - 1934.136 * T;
   const Lambda = sunLong + -0.00569 + -0.00478 * dSin(Omega);
-  const epsilon0 = obliqueQ(jd);
-  const epsilon = epsilon0 + 0.00256 * dCos(Omega);
+  const epsilon = obliqueQ(jd) + 0.00256 * dCos(Omega);
 
-  let Alpha = rtd(Math.atan2(dCos(epsilon0) * dSin(sunLong), dCos(sunLong)));
-  Alpha = fixAngle(Alpha);
-
-  const Delta = rtd(Math.asin(dSin(epsilon0) * dSin(sunLong)));
-
-  let AlphaApp = rtd(Math.atan2(dCos(epsilon) * dSin(Lambda), dCos(Lambda)));
-  AlphaApp = fixAngle(AlphaApp);
-
-  const DeltaApp = rtd(Math.asin(dSin(epsilon) * dSin(Lambda)));
-
-  return [
-    // Angular quantities are expressed in decimal degrees
-    L0, // [0] Geometric mean longitude of the Sun
-    M, // [1] Mean anomaly of the Sun
-    e, // [2] Eccentricity of the Earth's orbit
-    C, // [3] Sun's equation of the Centre
-    sunLong, // [4] Sun's true longitude
-    sunAnomaly, // [5] Sun's true anomaly
-    sunR, // [6] Sun's radius vector in AU
-    Lambda, // [7] Sun's apparent longitude at true equinox of the date
-    Alpha, // [8] Sun's true right ascension
-    Delta, // [9] Sun's true declination
-    AlphaApp, // [10] Sun's apparent right ascension
-    DeltaApp, // [11] Sun's apparent declination
-  ];
+  const alpha = rtd(Math.atan2(dCos(epsilon) * dSin(Lambda), dCos(Lambda)));
+  return fixAngle(alpha);
 }
 
 /*  EQUATION_OF_TIME -- Compute equation of time for a given moment.
@@ -779,9 +747,9 @@ function equationOfTime(jd: number) {
 
   L0 = fixAngle(L0);
 
-  const alpha = sunPos(jd)[10];
-  const deltaPsi = nutation(jd)[0];
-  const epsilon = obliqueQ(jd) + nutation(jd)[1];
+  const alpha = sunApparentRightAscension(jd);
+  const [deltaPsi, deltaEpsilon] = nutation(jd);
+  const epsilon = obliqueQ(jd) + deltaEpsilon;
 
   let E = L0 + -0.0057183 + -alpha + deltaPsi * dCos(epsilon);
   E = E - 20.0 * Math.floor(E / 20.0);

@@ -1,7 +1,4 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["index.test.ts"],
-  "project": ["*.ts"],
-  "ignoreDependencies": ["jsr"],
-  "tags": ["-lintignore"]
+  "project": ["*.ts"]
 }

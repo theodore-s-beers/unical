@@ -413,7 +413,8 @@ function jdToPersianA(jd: number): CalendarDate {
 
 function persianAToJD(year: number, month: number, day: number) {
   const equinox = tehranEquinoxJD(year + 621);
-  return equinox + persianMonthOffset(month) + day - 1;
+  // Return midnight, matching the other calendar-to-JD conversions.
+  return equinox + persianMonthOffset(month) + day - 1 + 0.5;
 }
 
 /*  LEAP_PERSIANA -- Is a given year a leap year in the Persian

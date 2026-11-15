@@ -14,6 +14,8 @@ A TypeScript library for converting between different calendars. The API works b
 
 Convert a date in any supported calendar to its Julian day number, then convert that Julian day to a date in any other calendar.
 
+For integer calendar dates, all calendar-to-JD functions return midnight Julian dates ending in `.5`.
+
 ```ts
 import { islamicToJD, jdToJulian } from "unical";
 

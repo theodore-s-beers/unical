@@ -6,11 +6,13 @@ import {
   hebrewToJD,
   hebrewYearDays,
   islamicToJD,
+  jdToGregorian,
   jdToHebrew,
   jdToIslamic,
   jdToJulian,
   jdToPersianA,
   julianToJD,
+  jWeekday,
   leapGregorian,
   leapJulian,
   leapPersianA,
@@ -114,6 +116,20 @@ Deno.test("persian dates round trip", () => {
   for (const date of dates) {
     assertEquals(jdToPersianA(persianAToJD(...date)), date);
   }
+});
+
+Deno.test("persian conversions use midnight Julian days", () => {
+  assertEquals(persianAToJD(1402, 12, 29), gregorianToJD(2024, 3, 19));
+  assertEquals(persianAToJD(1403, 1, 1), gregorianToJD(2024, 3, 20));
+  assertEquals(persianAToJD(1403, 12, 30), gregorianToJD(2025, 3, 20));
+  assertEquals(persianAToJD(1404, 1, 1), gregorianToJD(2025, 3, 21));
+});
+
+Deno.test("persian dates convert directly to other calendars and weekdays", () => {
+  const jd = persianAToJD(1404, 1, 1);
+  assertEquals(jdToGregorian(jd), [2025, 3, 21]);
+  assertEquals(jdToJulian(jd), [2025, 3, 8]);
+  assertEquals(jWeekday(jd), 5); // Friday
 });
 
 Deno.test("persian leap years", () => {

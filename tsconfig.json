@@ -4,7 +4,9 @@
     "declaration": true,
     "module": "NodeNext",
     "outDir": "./dist",
-    "target": "ES2022"
+    "rewriteRelativeImportExtensions": true,
+    "target": "ES2022",
+    "types": ["node"]
   },
-  "files": ["index.ts"]
+  "include": ["*.ts"]
 }

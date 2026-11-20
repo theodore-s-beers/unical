@@ -987,9 +987,7 @@ function equationOfTime(jd: number) {
   const [deltaPsi, deltaEpsilon] = nutation(jd);
   const epsilon = obliqueQ(jd) + deltaEpsilon;
 
-  let E = L0 + -0.0057183 + -alpha + deltaPsi * dCos(epsilon);
-  E = E - 20.0 * Math.floor(E / 20.0);
-  E = E / (24 * 60);
-
-  return E;
+  const angle = L0 - 0.0057183 - alpha + deltaPsi * dCos(epsilon);
+  const signedDegrees = mod(angle + 180, 360) - 180;
+  return signedDegrees / 360;
 }

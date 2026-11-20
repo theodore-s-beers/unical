@@ -149,6 +149,14 @@ test("islamic dates and leap-month boundaries round trip", () => {
   }
 });
 
+test("1 Farvardin 1342 falls on 21 March 1963", () => {
+  // Statistisches Bundesamt, Iran (1967), table "Auszug aus der iranischen Zeitrechnung"
+  const march21 = toJD("gregorian", 1963, 3, 21);
+  deepStrictEqual(fromJD("persian", march21 - 1), [1341, 12, 29]);
+  deepStrictEqual(fromJD("persian", march21), [1342, 1, 1]);
+  deepStrictEqual(toJD("persian", 1342, 1, 1), march21);
+});
+
 test("persian new year boundaries, leap years, and midnight JDs", () => {
   deepStrictEqual(isLeapYear("persian", 1402), false);
   deepStrictEqual(isLeapYear("persian", 1403), true);

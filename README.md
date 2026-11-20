@@ -4,55 +4,53 @@ A TypeScript library for converting between different calendars. The API works b
 
 ## Supported Calendars
 
-- [Gregorian](https://en.wikipedia.org/wiki/Gregorian_calendar)
-- [Julian](https://en.wikipedia.org/wiki/Julian_calendar)
-- [Hebrew](https://en.wikipedia.org/wiki/Hebrew_calendar)
-- [Islamic (Hijri)](https://en.wikipedia.org/wiki/Islamic_calendar)
-- [Persian (Solar Hijri)](https://en.wikipedia.org/wiki/Solar_Hijri_calendar)
+- `"gregorian"` — [Gregorian](https://en.wikipedia.org/wiki/Gregorian_calendar) (proleptic)
+- `"julian"` — [Julian](https://en.wikipedia.org/wiki/Julian_calendar) (proleptic)
+- `"hebrew"` — [Hebrew](https://en.wikipedia.org/wiki/Hebrew_calendar)
+- `"islamic"` — [Islamic (tabular Hijri)](https://en.wikipedia.org/wiki/Islamic_calendar)
+- `"persian"` — [Persian (astronomical Solar Hijri)](https://en.wikipedia.org/wiki/Solar_Hijri_calendar)
 
 ## Usage
 
-Convert a date in any supported calendar to its Julian day number, then convert that Julian day to a date in any other calendar.
-
-For integer calendar dates, all calendar-to-JD functions return midnight Julian dates ending in `.5`.
-
-All supported calendars use astronomical year numbering, including year `0` (for example, `0` is 1 BCE and `-1` is 2 BCE in the Gregorian and Julian calendars).
+Convert a date in any supported calendar to its Julian day number with `toJD()`, then convert that Julian day to a date in any other calendar with `fromJD()`.
 
 ```ts
-import { islamicToJD, jdToJulian } from "unical";
+import { fromJD, toJD } from "unical";
 
-// Convert Islamic date, e.g. 14 Jumada al-Akhira 505
-const jd = islamicToJD(505, 6, 14);
+// Convert Islamic date, e.g., 14 Jumada al-Akhira 505
+const jd = toJD("islamic", 505, 6, 14);
 
-// Convert Julian day to proper Julian date
-const [year, month, day] = jdToJulian(jd);
+// Convert Julian day to Julian calendar date
+const [year, month, day] = fromJD("julian", jd);
 console.log(`${year}-${month}-${day}`); // 1111-12-18
 ```
 
-### Available Functions
+### Conventions and Validation
 
-**Conversion to Julian day:**
+- **Julian days:** `toJD()` always returns a midnight Julian date ending in `.5` (00:00 UTC). `fromJD()` and `weekday()` accept any finite Julian day (including fractional values) and roll over dates consistently at midnight (`N + 0.5`).
+- **Year numbering:** All five calendars use continuous astronomical year numbering, including year `0` (for example, `0` is 1 BCE and `-1` is 2 BCE in both the Gregorian and Julian calendars).
+- **Hebrew months:** Months are numbered `1` (Nisan) through `6` (Elul), then `7` (Tishri, the start of the Hebrew civil year) through `12` (Adar / Adar I), and `13` (Adar II) in leap years.
+- **Strict input validation:** `toJD()`, `fromJD()`, `isLeapYear()`, `yearMonths()`, `yearDays()`, `monthDays()`, and `weekday()` throw a `RangeError` on invalid inputs (unsupported calendar, non-integer or non-finite date components, nonexistent months, overflowing days, or non-finite Julian days). Use `isValidDate()` to check date validity without throwing.
 
-- `gregorianToJD(year, month, day)`
-- `julianToJD(year, month, day)`
-- `hebrewToJD(year, month, day)`
-- `islamicToJD(year, month, day)`
-- `persianAToJD(year, month, day)`
+### API Reference
 
-**Conversion from Julian day:**
+**Types and constants:**
 
-- `jdToGregorian(jd)` → `[year, month, day]`
-- `jdToJulian(jd)` → `[year, month, day]`
-- `jdToHebrew(jd)` → `[year, month, day]`
-- `jdToIslamic(jd)` → `[year, month, day]`
-- `jdToPersianA(jd)` → `[year, month, day]`
+- `CALENDARS`: readonly array of supported calendar identifiers (`["gregorian", "julian", "hebrew", "islamic", "persian"]`)
+- `Calendar`: union type of supported calendar identifiers (`(typeof CALENDARS)[number]`)
+- `CalendarDate`: `[year: number, month: number, day: number]`
+- `WEEKDAYS`, `ISLAMIC_WEEKDAYS`, `PERSIAN_WEEKDAYS`: weekday name arrays indexed `0` (Sunday) through `6` (Saturday)
 
-**Utilities:**
+**Functions:**
 
-- `leapGregorian(year)`, `leapJulian(year)`, `leapIslamic(year)`, `leapPersianA(year)`, `hebrewLeap(year)`: check if a given year is a leap year in the specified calendar
-- `hebrewYearDays(year)`: get the number of days in a given Hebrew year
-- `jWeekday(jd)`: get day of week from Julian day
-- `WEEKDAYS`, `ISLAMIC_WEEKDAYS`, `PERSIAN_WEEKDAYS`: weekday name constants
+- `toJD(calendar, year, month, day)` → `number`: convert a valid calendar date to its midnight Julian day
+- `fromJD(calendar, jd)` → `CalendarDate`: convert a Julian day to `[year, month, day]` in the specified calendar
+- `isValidDate(calendar, year, month, day)` → `boolean`: return whether the date is valid (never throws)
+- `isLeapYear(calendar, year)` → `boolean`: return whether the given year is a leap year
+- `yearMonths(calendar, year)` → `number`: return the number of months in the year (`12`, or `13` for Hebrew leap years)
+- `yearDays(calendar, year)` → `number`: return the number of days in the year
+- `monthDays(calendar, year, month)` → `number`: return the number of days in the given month
+- `weekday(jd)` → `number`: return the day of the week (`0` = Sunday .. `6` = Saturday)
 
 For actual usage examples, see the [muqawwim.com](https://www.muqawwim.com/) calendar conversion web app ([GitHub repo](https://github.com/theodore-s-beers/muqawwim)).
 

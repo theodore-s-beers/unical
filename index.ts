@@ -6,31 +6,200 @@
 // Exports
 //
 
-export type CalendarDate = [year: number, month: number, day: number];
+const CALENDARS = ["gregorian", "julian", "hebrew", "islamic", "persian"] as const;
+
+type Calendar = (typeof CALENDARS)[number];
+type CalendarDate = [year: number, month: number, day: number];
 
 export {
+  CALENDARS,
   ISLAMIC_WEEKDAYS,
-  NORM_LEAP,
   PERSIAN_WEEKDAYS,
   WEEKDAYS,
-  gregorianToJD,
-  hebrewLeap,
-  hebrewToJD,
-  hebrewYearDays,
-  islamicToJD,
-  jdToGregorian,
-  jdToHebrew,
-  jdToIslamic,
-  jdToJulian,
-  jdToPersianA,
-  julianToJD,
-  jWeekday,
-  leapGregorian,
-  leapIslamic,
-  leapJulian,
-  leapPersianA,
-  persianAToJD,
+  fromJD,
+  isLeapYear,
+  isValidDate,
+  monthDays,
+  toJD,
+  weekday,
+  yearDays,
+  yearMonths,
+  type Calendar,
+  type CalendarDate,
 };
+
+function isCalendar(value: unknown): value is Calendar {
+  return typeof value === "string" && (CALENDARS as readonly string[]).includes(value);
+}
+
+function assertCalendar(calendar: Calendar): asserts calendar is Calendar {
+  if (!isCalendar(calendar)) {
+    throw new RangeError(`Unsupported calendar: ${String(calendar)}`);
+  }
+}
+
+function assertYear(year: number) {
+  if (!Number.isSafeInteger(year)) {
+    throw new RangeError(`Year must be a safe integer, received ${year}`);
+  }
+}
+
+function assertMonth(calendar: Calendar, year: number, month: number) {
+  const maxMonth = yearMonthsUnchecked(calendar, year);
+  if (!Number.isSafeInteger(month) || month < 1 || month > maxMonth) {
+    throw new RangeError(
+      `Month must be an integer between 1 and ${maxMonth} for ${calendar} year ${year}, received ${month}`,
+    );
+  }
+}
+
+function assertDate(calendar: Calendar, year: number, month: number, day: number) {
+  assertCalendar(calendar);
+  assertYear(year);
+  assertMonth(calendar, year, month);
+  const maxDay = monthDaysUnchecked(calendar, year, month);
+  if (!Number.isSafeInteger(day) || day < 1 || day > maxDay) {
+    throw new RangeError(
+      `Day must be an integer between 1 and ${maxDay} for ${calendar} ${year}-${month}, received ${day}`,
+    );
+  }
+}
+
+function assertJD(jd: number) {
+  if (!Number.isFinite(jd)) {
+    throw new RangeError(`Julian day must be a finite number, received ${jd}`);
+  }
+}
+
+function toJD(calendar: Calendar, year: number, month: number, day: number): number {
+  assertDate(calendar, year, month, day);
+  switch (calendar) {
+    case "gregorian":
+      return gregorianToJD(year, month, day);
+    case "julian":
+      return julianToJD(year, month, day);
+    case "hebrew":
+      return hebrewToJD(year, month, day);
+    case "islamic":
+      return islamicToJD(year, month, day);
+    case "persian":
+      return persianToJD(year, month, day);
+  }
+}
+
+function fromJD(calendar: Calendar, jd: number): CalendarDate {
+  assertCalendar(calendar);
+  assertJD(jd);
+  switch (calendar) {
+    case "gregorian":
+      return jdToGregorian(jd);
+    case "julian":
+      return jdToJulian(jd);
+    case "hebrew":
+      return jdToHebrew(jd);
+    case "islamic":
+      return jdToIslamic(jd);
+    case "persian":
+      return jdToPersian(jd);
+  }
+}
+
+function isValidDate(calendar: Calendar, year: number, month: number, day: number): boolean {
+  if (!isCalendar(calendar)) {
+    return false;
+  }
+  if (!Number.isSafeInteger(year) || !Number.isSafeInteger(month) || !Number.isSafeInteger(day)) {
+    return false;
+  }
+  const maxMonth = yearMonthsUnchecked(calendar, year);
+  if (month < 1 || month > maxMonth) {
+    return false;
+  }
+  const maxDay = monthDaysUnchecked(calendar, year, month);
+  return day >= 1 && day <= maxDay;
+}
+
+function isLeapYear(calendar: Calendar, year: number): boolean {
+  assertCalendar(calendar);
+  assertYear(year);
+  switch (calendar) {
+    case "gregorian":
+      return leapGregorian(year);
+    case "julian":
+      return leapJulian(year);
+    case "hebrew":
+      return hebrewLeap(year);
+    case "islamic":
+      return leapIslamic(year);
+    case "persian":
+      return leapPersian(year);
+  }
+}
+
+function yearMonthsUnchecked(calendar: Calendar, year: number): number {
+  return calendar === "hebrew" ? hebrewYearMonths(year) : 12;
+}
+
+function yearMonths(calendar: Calendar, year: number): number {
+  assertCalendar(calendar);
+  assertYear(year);
+  return yearMonthsUnchecked(calendar, year);
+}
+
+function yearDays(calendar: Calendar, year: number): number {
+  assertCalendar(calendar);
+  assertYear(year);
+  switch (calendar) {
+    case "gregorian":
+      return leapGregorian(year) ? 366 : 365;
+    case "julian":
+      return leapJulian(year) ? 366 : 365;
+    case "hebrew":
+      return hebrewYearDays(year);
+    case "islamic":
+      return leapIslamic(year) ? 355 : 354;
+    case "persian":
+      return persianToJD(year + 1, 1, 1) - persianToJD(year, 1, 1);
+  }
+}
+
+function solarMonthDays(month: number, leap: boolean): number {
+  if (month === 2) {
+    return leap ? 29 : 28;
+  }
+  if (month === 4 || month === 6 || month === 9 || month === 11) {
+    return 30;
+  }
+  return 31;
+}
+
+function monthDaysUnchecked(calendar: Calendar, year: number, month: number): number {
+  switch (calendar) {
+    case "gregorian":
+      return solarMonthDays(month, leapGregorian(year));
+    case "julian":
+      return solarMonthDays(month, leapJulian(year));
+    case "hebrew":
+      return hebrewMonthDays(year, month);
+    case "islamic":
+      return month === 12 ? (leapIslamic(year) ? 30 : 29) : month % 2 === 1 ? 30 : 29;
+    case "persian":
+      if (month <= 6) {
+        return 31;
+      }
+      if (month <= 11) {
+        return 30;
+      }
+      return leapPersian(year) ? 30 : 29;
+  }
+}
+
+function monthDays(calendar: Calendar, year: number, month: number): number {
+  assertCalendar(calendar);
+  assertYear(year);
+  assertMonth(calendar, year, month);
+  return monthDaysUnchecked(calendar, year, month);
+}
 
 /*
        JavaScript functions for the Fourmilab Calendar Converter
@@ -40,8 +209,6 @@ export {
 
                 This program is in the public domain.
 */
-
-const NORM_LEAP = ["Normal year", "Leap year"];
 
 // LEAP_GREGORIAN -- Is a given year in the Gregorian calendar a leap year?
 
@@ -237,17 +404,24 @@ function hebrewToJD(year: number, month: number, day: number) {
 function jdToHebrew(jd: number): CalendarDate {
   jd = normalizeJD(jd);
   const count = Math.floor(((jd - HEBREW_EPOCH) * 98496.0) / 35975351.0);
+  if (!Number.isSafeInteger(count) || !Number.isSafeInteger(count - 1)) {
+    throw new RangeError(`Julian day is out of supported range for hebrew calendar: ${jd}`);
+  }
   let year = count - 1;
   for (let i = count; jd >= hebrewYearStart(i); i++) {
     year++;
+    if (!Number.isSafeInteger(i + 1)) {
+      throw new RangeError(`Julian day is out of supported range for hebrew calendar: ${jd}`);
+    }
   }
 
   const nisanStart = hebrewToJD(year, 1, 1);
   const firstMonth = jd < nisanStart ? 7 : 1;
+  const maxMonth = firstMonth === 7 ? hebrewYearMonths(year) : 6;
   let month = firstMonth;
   let monthStart = firstMonth === 7 ? hebrewYearStart(year) : nisanStart;
 
-  while (true) {
+  while (month < maxMonth) {
     const nextMonthStart = monthStart + hebrewMonthDays(year, month);
     if (jd < nextMonthStart) {
       break;
@@ -278,7 +452,7 @@ const ISLAMIC_WEEKDAYS = [
   "al-Khamis",
   "al-Jum\u2018ah",
   "al-Sabt",
-];
+] as const;
 
 function islamicToJD(year: number, month: number, day: number) {
   return (
@@ -359,9 +533,9 @@ const PERSIAN_WEEKDAYS = [
   "Panjshanbeh",
   "Jom‘eh",
   "Shanbeh",
-];
+] as const;
 
-function persianAYear(jd: number) {
+function persianYear(jd: number) {
   const gregorianYear = jdToGregorian(jd)[0];
   let equinox = tehranEquinoxJD(gregorianYear);
 
@@ -378,14 +552,14 @@ function persianMonthOffset(month: number) {
   return month <= 7 ? (month - 1) * 31 : (month - 1) * 30 + 6;
 }
 
-/*  JD_TO_PERSIANA -- Calculate date in the Persian astronomical
-                      calendar from Julian day.  */
+/*  JD_TO_PERSIAN -- Calculate date in the Persian astronomical
+                     calendar from Julian day.  */
 
-function jdToPersianA(jd: number): CalendarDate {
+function jdToPersian(jd: number): CalendarDate {
   jd = normalizeJD(jd);
   const jdFloored = Math.floor(jd);
 
-  const [year, equinox] = persianAYear(jd);
+  const [year, equinox] = persianYear(jd);
 
   const yDay = jdFloored - equinox + 1;
   const month = yDay <= 186 ? Math.ceil(yDay / 31) : Math.ceil((yDay - 6) / 30);
@@ -394,20 +568,20 @@ function jdToPersianA(jd: number): CalendarDate {
   return [year, month, day];
 }
 
-/*  PERSIANA_TO_JD -- Obtain Julian day from a given Persian
-                      astronomical calendar date.  */
+/*  PERSIAN_TO_JD -- Obtain Julian day from a given Persian
+                     astronomical calendar date.  */
 
-function persianAToJD(year: number, month: number, day: number) {
+function persianToJD(year: number, month: number, day: number) {
   const equinox = tehranEquinoxJD(year + 621);
   // Return midnight, matching the other calendar-to-JD conversions.
   return equinox + persianMonthOffset(month) + day - 1 + 0.5;
 }
 
-/*  LEAP_PERSIANA -- Is a given year a leap year in the Persian
-                     astronomical calendar?  */
+/*  LEAP_PERSIAN -- Is a given year a leap year in the Persian
+                    astronomical calendar?  */
 
-function leapPersianA(year: number) {
-  return persianAToJD(year + 1, 1, 1) - persianAToJD(year, 1, 1) > 365;
+function leapPersian(year: number) {
+  return persianToJD(year + 1, 1, 1) - persianToJD(year, 1, 1) > 365;
 }
 
 /*
@@ -475,13 +649,22 @@ function mod(a: number, b: number) {
   return a - b * Math.floor(a / b);
 }
 
-// JWDAY -- Calculate day of week from Julian day
+// WEEKDAY -- Calculate day of week from Julian day (0 = Sunday .. 6 = Saturday)
 
-function jWeekday(j: number) {
-  return mod(Math.floor(j + 1.5), 7);
+function weekday(jd: number): number {
+  assertJD(jd);
+  return mod(Math.floor(jd + 1.5), 7);
 }
 
-const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const WEEKDAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
 
 /*  OBLIQUEQ -- Calculate the obliquity of the ecliptic for a given
                 Julian date. This uses Laskar's tenth-degree

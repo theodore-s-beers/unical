@@ -6,7 +6,7 @@
 // Exports
 //
 
-const CALENDARS = ["gregorian", "julian", "hebrew", "islamic", "persian"] as const;
+const CALENDARS = Object.freeze(["gregorian", "julian", "hebrew", "islamic", "persian"] as const);
 
 type Calendar = (typeof CALENDARS)[number];
 type CalendarDate = [year: number, month: number, day: number];

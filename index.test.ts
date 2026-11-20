@@ -299,6 +299,10 @@ test("fractional Julian dates around JD 0 and ULP neighbors roll over at midnigh
   deepStrictEqual(weekday(justBeforeNowruz), 4); // Thursday
 });
 
+test("the exported calendar list is frozen at runtime", () => {
+  deepStrictEqual(Object.isFrozen(CALENDARS), true);
+});
+
 test("isCalendar narrows valid calendar strings without throwing", () => {
   for (const calendar of CALENDARS) {
     deepStrictEqual(isCalendar(calendar), true);

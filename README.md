@@ -16,6 +16,8 @@ Convert a date in any supported calendar to its Julian day number, then convert 
 
 For integer calendar dates, all calendar-to-JD functions return midnight Julian dates ending in `.5`.
 
+All supported calendars use astronomical year numbering, including year `0` (for example, `0` is 1 BCE and `-1` is 2 BCE in the Gregorian and Julian calendars).
+
 ```ts
 import { islamicToJD, jdToJulian } from "unical";
 

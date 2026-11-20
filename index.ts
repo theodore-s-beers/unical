@@ -92,16 +92,10 @@ function jdToGregorian(jd: number): CalendarDate {
 // JULIAN_TO_JD -- Determine Julian day number from Julian calendar date
 
 function leapJulian(year: number) {
-  return mod(year, 4) === (year > 0 ? 0 : 3);
+  return mod(year, 4) === 0;
 }
 
 function julianToJD(year: number, month: number, day: number) {
-  // Adjust negative common era years to the zero-based notation we use.
-
-  if (year < 1) {
-    year++;
-  }
-
   // Algorithm as given in Meeus, Astronomical Algorithms, chapter 7, page 61
 
   if (month <= 2) {
@@ -125,16 +119,8 @@ function jdToJulian(td: number): CalendarDate {
   const e = Math.floor((b - d) / 30.6001);
 
   const month = Math.floor(e < 14 ? e - 1 : e - 13);
-  let year = Math.floor(month > 2 ? c - 4716 : c - 4715);
+  const year = Math.floor(month > 2 ? c - 4716 : c - 4715);
   const day = b - d - Math.floor(30.6001 * e);
-
-  /*  If year is less than 1, subtract one to convert from
-        a zero based date system to the common era system in
-        which the year -1 (1 B.C.E) is followed by year 1 (1 C.E.).  */
-
-  if (year < 1) {
-    year--;
-  }
 
   return [year, month, day];
 }

@@ -33,6 +33,35 @@ test("julian 1900 leap", () => {
   deepStrictEqual(leapJulian(1900), true);
 });
 
+test("julian leap years across negative, zero, and positive years", () => {
+  for (let year = -20; year <= 20; year++) {
+    const yearLength = julianToJD(year + 1, 1, 1) - julianToJD(year, 1, 1);
+    deepStrictEqual(leapJulian(year), yearLength === 366);
+  }
+});
+
+test("julian astronomical year zero and negative years", () => {
+  const dates: [number, number, number][] = [
+    [-4712, 1, 1],
+    [-4, 2, 29],
+    [-1, 12, 31],
+    [0, 1, 1],
+    [0, 2, 29],
+    [0, 12, 31],
+    [1, 1, 1],
+  ];
+
+  for (const date of dates) {
+    deepStrictEqual(jdToJulian(julianToJD(...date)), date);
+  }
+
+  deepStrictEqual(julianToJD(-4712, 1, 1), -0.5);
+  deepStrictEqual(julianToJD(0, 1, 1) - julianToJD(-1, 12, 31), 1);
+  deepStrictEqual(julianToJD(1, 1, 1) - julianToJD(0, 12, 31), 1);
+  deepStrictEqual(julianToJD(0, 1, 3), gregorianToJD(0, 1, 1));
+  deepStrictEqual(julianToJD(1, 1, 1), gregorianToJD(0, 12, 30));
+});
+
 test("hebrew 4321 leap", () => {
   deepStrictEqual(hebrewLeap(4321), true);
 });

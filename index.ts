@@ -278,7 +278,7 @@ function jdToHebrew(jd: number): CalendarDate {
 // LEAP_ISLAMIC -- Is a given year a leap year in the Islamic calendar?
 
 function leapIslamic(year: number) {
-  return (year * 11 + 14) % 30 < 11;
+  return mod(year * 11 + 14, 30) < 11;
 }
 
 // ISLAMIC_TO_JD -- Determine Julian day from Islamic date

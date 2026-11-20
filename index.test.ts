@@ -15,6 +15,7 @@ import {
   julianToJD,
   jWeekday,
   leapGregorian,
+  leapIslamic,
   leapJulian,
   leapPersianA,
   persianAToJD,
@@ -81,6 +82,13 @@ test("suleymaniye islamic to julian", () => {
   const jd = islamicToJD(957, 5, 26);
   const [year, month, day] = jdToJulian(jd);
   deepStrictEqual([year, month, day], [1550, 6, 12]);
+});
+
+test("islamic leap years", () => {
+  for (let year = -60; year <= 60; year++) {
+    const yearLength = islamicToJD(year + 1, 1, 1) - islamicToJD(year, 1, 1);
+    deepStrictEqual(leapIslamic(year), yearLength === 355);
+  }
 });
 
 test("islamic dates round trip", () => {

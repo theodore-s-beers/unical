@@ -146,3 +146,25 @@ test("persian leap years", () => {
   deepStrictEqual(leapPersianA(1403), true);
   deepStrictEqual(leapPersianA(1404), false);
 });
+
+test("fractional Julian dates roll over consistently at midnight", () => {
+  const midnight = gregorianToJD(2025, 3, 21); // 2460755.5
+  const nextMidnight = gregorianToJD(2025, 3, 22); // 2460756.5
+
+  for (const offset of [0, 0.25, 0.5, 0.75, 0.9999]) {
+    const jd = midnight + offset;
+    deepStrictEqual(jdToGregorian(jd), [2025, 3, 21]);
+    deepStrictEqual(jdToJulian(jd), [2025, 3, 8]);
+    deepStrictEqual(jdToHebrew(jd), [5785, 12, 21]);
+    deepStrictEqual(jdToIslamic(jd), [1446, 9, 21]);
+    deepStrictEqual(jdToPersianA(jd), [1404, 1, 1]);
+    deepStrictEqual(jWeekday(jd), 5); // Friday
+  }
+
+  deepStrictEqual(jdToGregorian(nextMidnight), [2025, 3, 22]);
+  deepStrictEqual(jdToJulian(nextMidnight), [2025, 3, 9]);
+  deepStrictEqual(jdToHebrew(nextMidnight), [5785, 12, 22]);
+  deepStrictEqual(jdToIslamic(nextMidnight), [1446, 9, 22]);
+  deepStrictEqual(jdToPersianA(nextMidnight), [1404, 1, 2]);
+  deepStrictEqual(jWeekday(nextMidnight), 6); // Saturday
+});

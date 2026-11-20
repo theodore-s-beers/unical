@@ -6,6 +6,7 @@ import {
   type Calendar,
   type CalendarDate,
   fromJD,
+  isCalendar,
   isLeapYear,
   isValidDate,
   monthDays,
@@ -251,15 +252,65 @@ test("fractional Julian dates roll over consistently at midnight", () => {
   deepStrictEqual(weekday(nextMidnight), 6); // Saturday
 });
 
-test("fractional Julian dates around JD 0 roll over consistently at midnight", () => {
-  for (const offset of [0, 0.25, 0.5, 0.75, 0.9999]) {
-    const jd = -0.5 + offset;
+test("fractional Julian dates around JD 0 and ULP neighbors roll over at midnight", () => {
+  const arithmeticCalendars: readonly Calendar[] = ["gregorian", "julian", "hebrew", "islamic"];
+
+  // Immediate representable float below 0.5 (0.5 - 2^-54) must stay on day [-4712, 1, 1]
+  const justBeforeHalf = 0.49999999999999994;
+  for (const jd of [-0.5, -0.25, -0, 0, 0.25, justBeforeHalf]) {
     deepStrictEqual(fromJD("julian", jd), [-4712, 1, 1]);
     deepStrictEqual(weekday(jd), 1); // Monday
+    for (const calendar of arithmeticCalendars) {
+      deepStrictEqual(fromJD(calendar, jd), fromJD(calendar, -0.5));
+    }
   }
 
   deepStrictEqual(fromJD("julian", 0.5), [-4712, 1, 2]);
   deepStrictEqual(weekday(0.5), 2); // Tuesday
+  for (const calendar of arithmeticCalendars) {
+    deepStrictEqual(fromJD(calendar, 0.5), fromJD(calendar, 0.75));
+  }
+
+  // Immediate representable float below -0.5 must stay on day [-4713, 12, 31]
+  const justBeforeNegHalf = -0.5000000000000001;
+  deepStrictEqual(fromJD("julian", justBeforeNegHalf), [-4713, 12, 31]);
+  deepStrictEqual(weekday(justBeforeNegHalf), 0); // Sunday
+  for (const calendar of arithmeticCalendars) {
+    deepStrictEqual(fromJD(calendar, justBeforeNegHalf), fromJD(calendar, -1.5));
+  }
+
+  // Immediate representable float below Nowruz 1404 midnight (2460755.5) across all 5 calendars
+  const nowruzMidnight = toJD("gregorian", 2025, 3, 21); // 2460755.5
+  const justBeforeNowruz = 2460755.4999999995;
+  deepStrictEqual(justBeforeNowruz < nowruzMidnight, true);
+  deepStrictEqual(fromJD("gregorian", justBeforeNowruz), [2025, 3, 20]);
+  deepStrictEqual(fromJD("julian", justBeforeNowruz), [2025, 3, 7]);
+  deepStrictEqual(fromJD("hebrew", justBeforeNowruz), [5785, 12, 20]);
+  deepStrictEqual(fromJD("islamic", justBeforeNowruz), [1446, 9, 20]);
+  deepStrictEqual(fromJD("persian", justBeforeNowruz), [1403, 12, 30]);
+  deepStrictEqual(weekday(justBeforeNowruz), 4); // Thursday
+});
+
+test("isCalendar narrows valid calendar strings without throwing", () => {
+  for (const calendar of CALENDARS) {
+    deepStrictEqual(isCalendar(calendar), true);
+  }
+  for (const bad of ["persianA", "Gregorian", "", "unknown", null, undefined, 0, {}]) {
+    deepStrictEqual(isCalendar(bad), false);
+  }
+});
+
+test("Julian day precision safety cap is enforced consistently", () => {
+  for (const outOfBoundsJD of [2 ** 52, -(2 ** 52), 1e20, -1e20]) {
+    throws(() => weekday(outOfBoundsJD), RangeError);
+    for (const calendar of CALENDARS) {
+      throws(() => fromJD(calendar, outOfBoundsJD), RangeError);
+    }
+  }
+
+  deepStrictEqual(typeof weekday(2 ** 52 - 1), "number");
+  deepStrictEqual(fromJD("persian", toJD("gregorian", -1000, 1, 1)), [-1622, 10, 11]);
+  deepStrictEqual(fromJD("persian", toJD("gregorian", 3000, 12, 31)), [2379, 10, 10]);
 });
 
 test("isValidDate validates dates without throwing", () => {
@@ -289,9 +340,30 @@ test("isValidDate validates dates without throwing", () => {
   deepStrictEqual(isValidDate("gregorian", Number.POSITIVE_INFINITY, 1, 1), false);
   deepStrictEqual(isValidDate("gregorian", Number.MAX_SAFE_INTEGER + 1, 1, 1), false);
   deepStrictEqual(isValidDate("unknown" as Calendar, 2025, 1, 1), false);
+
+  // Non-stringifiable runtime inputs from untyped JS must return false without throwing
+  const nullProto = Object.create(null);
+  deepStrictEqual(isValidDate(nullProto as Calendar, 2025, 1, 1), false);
+  deepStrictEqual(isValidDate("gregorian", Symbol() as unknown as number, 1, 1), false);
+  deepStrictEqual(isValidDate("gregorian", 2025, Symbol() as unknown as number, 1), false);
+  deepStrictEqual(isValidDate("gregorian", 2025, 1, nullProto as unknown as number), false);
 });
 
 test("strict validation throws RangeError on invalid inputs", () => {
+  // Non-stringifiable runtime inputs still throw RangeError (not TypeError)
+  const nullProto = Object.create(null);
+  const { proxy: revokedProxy, revoke } = Proxy.revocable({}, {});
+  revoke();
+  throws(() => toJD(nullProto as Calendar, 2025, 1, 1), RangeError);
+  throws(() => toJD(revokedProxy as Calendar, 2025, 1, 1), RangeError);
+  throws(() => toJD("gregorian", Symbol() as unknown as number, 1, 1), RangeError);
+  throws(() => toJD("gregorian", revokedProxy as unknown as number, 1, 1), RangeError);
+  throws(() => fromJD(nullProto as Calendar, 2460755.5), RangeError);
+  throws(() => fromJD("gregorian", Symbol() as unknown as number), RangeError);
+  throws(() => weekday(nullProto as unknown as number), RangeError);
+  throws(() => isLeapYear("gregorian", Symbol() as unknown as number), RangeError);
+  throws(() => monthDays("gregorian", 2025, Symbol() as unknown as number), RangeError);
+
   // Invalid dates in toJD
   throws(() => toJD("gregorian", 2025, 2, 29), RangeError);
   throws(() => toJD("gregorian", 2025, 0, 1), RangeError);

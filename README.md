@@ -27,25 +27,27 @@ console.log(`${year}-${month}-${day}`); // 1111-12-18
 
 ### Conventions and Validation
 
-- **Julian days:** `toJD()` always returns a midnight Julian date ending in `.5` (00:00 UTC). `fromJD()` and `weekday()` accept any finite Julian day (including fractional values) and roll over dates consistently at midnight (`N + 0.5`).
+- **Julian days:** `toJD()` returns a midnight Julian date ending in `.5` (00:00 UTC) for dates within normal ranges. `fromJD()` and `weekday()` accept fractional Julian days and roll over dates consistently at midnight (`N + 0.5`). As a safety cap, Julian days with `|jd| >= 2^52` are rejected.
+- **Practical ranges:** Conversions are intended and tested for historical and modern dates (the `2^52` limit is for code safety, not to guarantee accuracy). In particular, the `"persian"` astronomical equinox approximation is valid for Gregorian years `-1000` through `3000` (Persian `-1622` through `2379`); extreme years or Julian days well outside normal ranges may lose floating-point or astronomical accuracy.
 - **Year numbering:** All five calendars use continuous astronomical year numbering, including year `0` (for example, `0` is 1 BCE and `-1` is 2 BCE in both the Gregorian and Julian calendars).
 - **Hebrew months:** Months are numbered `1` (Nisan) through `6` (Elul), then `7` (Tishri, the start of the Hebrew civil year) through `12` (Adar / Adar I), and `13` (Adar II) in leap years.
-- **Strict input validation:** `toJD()`, `fromJD()`, `isLeapYear()`, `yearMonths()`, `yearDays()`, `monthDays()`, and `weekday()` throw a `RangeError` on invalid inputs (unsupported calendar, non-integer or non-finite date components, nonexistent months, overflowing days, or non-finite Julian days). Use `isValidDate()` to check date validity without throwing.
+- **Strict input validation:** `toJD()`, `fromJD()`, `isLeapYear()`, `yearMonths()`, `yearDays()`, `monthDays()`, and `weekday()` throw a `RangeError` on invalid inputs (unsupported calendar, non-safe-integer date components, nonexistent months, overflowing days, or non-finite / out-of-precision Julian days). Use `isCalendar()` and `isValidDate()` to validate untrusted inputs without throwing.
 
 ### API Reference
 
 **Types and constants:**
 
-- `CALENDARS`: readonly array of supported calendar identifiers (`["gregorian", "julian", "hebrew", "islamic", "persian"]`)
+- `CALENDARS`: read-only array of supported calendar identifiers (`["gregorian", "julian", "hebrew", "islamic", "persian"]`)
 - `Calendar`: union type of supported calendar identifiers (`(typeof CALENDARS)[number]`)
 - `CalendarDate`: `[year: number, month: number, day: number]`
-- `WEEKDAYS`, `ISLAMIC_WEEKDAYS`, `PERSIAN_WEEKDAYS`: weekday name arrays indexed `0` (Sunday) through `6` (Saturday)
+- `WEEKDAYS`, `ISLAMIC_WEEKDAYS`, `PERSIAN_WEEKDAYS`: read-only weekday name arrays indexed `0` (Sunday) through `6` (Saturday)
 
 **Functions:**
 
 - `toJD(calendar, year, month, day)` → `number`: convert a valid calendar date to its midnight Julian day
 - `fromJD(calendar, jd)` → `CalendarDate`: convert a Julian day to `[year, month, day]` in the specified calendar
-- `isValidDate(calendar, year, month, day)` → `boolean`: return whether the date is valid (never throws)
+- `isCalendar(value)` → `value is Calendar`: type guard returning whether `value` is a supported calendar identifier (_never throws_)
+- `isValidDate(calendar, year, month, day)` → `boolean`: return whether the date is valid (_never throws_)
 - `isLeapYear(calendar, year)` → `boolean`: return whether the given year is a leap year
 - `yearMonths(calendar, year)` → `number`: return the number of months in the year (`12`, or `13` for Hebrew leap years)
 - `yearDays(calendar, year)` → `number`: return the number of days in the year

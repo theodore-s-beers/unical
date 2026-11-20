@@ -17,6 +17,7 @@ export {
   PERSIAN_WEEKDAYS,
   WEEKDAYS,
   fromJD,
+  isCalendar,
   isLeapYear,
   isValidDate,
   monthDays,
@@ -28,19 +29,38 @@ export {
   type CalendarDate,
 };
 
+const MAX_SAFE_JD = 2 ** 52;
+
+type DateValidationError =
+  | { kind: "calendar"; value: unknown }
+  | { kind: "year"; value: unknown }
+  | { kind: "month"; calendar: Calendar; year: number; max: number; value: unknown }
+  | { kind: "day"; calendar: Calendar; year: number; month: number; max: number; value: unknown };
+
+function formatValue(value: unknown): string {
+  if (typeof value === "symbol") {
+    return value.toString();
+  }
+  try {
+    return String(value);
+  } catch {
+    return "<unprintable>";
+  }
+}
+
 function isCalendar(value: unknown): value is Calendar {
   return typeof value === "string" && (CALENDARS as readonly string[]).includes(value);
 }
 
 function assertCalendar(calendar: Calendar): asserts calendar is Calendar {
   if (!isCalendar(calendar)) {
-    throw new RangeError(`Unsupported calendar: ${String(calendar)}`);
+    throw new RangeError(`Unsupported calendar: ${formatValue(calendar)}`);
   }
 }
 
 function assertYear(year: number) {
   if (!Number.isSafeInteger(year)) {
-    throw new RangeError(`Year must be a safe integer, received ${year}`);
+    throw new RangeError(`Year must be a safe integer, received ${formatValue(year)}`);
   }
 }
 
@@ -48,26 +68,60 @@ function assertMonth(calendar: Calendar, year: number, month: number) {
   const maxMonth = yearMonthsUnchecked(calendar, year);
   if (!Number.isSafeInteger(month) || month < 1 || month > maxMonth) {
     throw new RangeError(
-      `Month must be an integer between 1 and ${maxMonth} for ${calendar} year ${year}, received ${month}`,
+      `Month must be an integer between 1 and ${maxMonth} for ${calendar} year ${year}, received ${formatValue(month)}`,
     );
   }
 }
 
-function assertDate(calendar: Calendar, year: number, month: number, day: number) {
-  assertCalendar(calendar);
-  assertYear(year);
-  assertMonth(calendar, year, month);
+function validateDate(
+  calendar: Calendar,
+  year: number,
+  month: number,
+  day: number,
+): DateValidationError | null {
+  if (!isCalendar(calendar)) {
+    return { kind: "calendar", value: calendar };
+  }
+  if (!Number.isSafeInteger(year)) {
+    return { kind: "year", value: year };
+  }
+  const maxMonth = yearMonthsUnchecked(calendar, year);
+  if (!Number.isSafeInteger(month) || month < 1 || month > maxMonth) {
+    return { kind: "month", calendar, year, max: maxMonth, value: month };
+  }
   const maxDay = monthDaysUnchecked(calendar, year, month);
   if (!Number.isSafeInteger(day) || day < 1 || day > maxDay) {
-    throw new RangeError(
-      `Day must be an integer between 1 and ${maxDay} for ${calendar} ${year}-${month}, received ${day}`,
-    );
+    return { kind: "day", calendar, year, month, max: maxDay, value: day };
+  }
+  return null;
+}
+
+function assertDate(calendar: Calendar, year: number, month: number, day: number) {
+  const error = validateDate(calendar, year, month, day);
+  if (error === null) {
+    return;
+  }
+  switch (error.kind) {
+    case "calendar":
+      throw new RangeError(`Unsupported calendar: ${formatValue(error.value)}`);
+    case "year":
+      throw new RangeError(`Year must be a safe integer, received ${formatValue(error.value)}`);
+    case "month":
+      throw new RangeError(
+        `Month must be an integer between 1 and ${error.max} for ${error.calendar} year ${error.year}, received ${formatValue(error.value)}`,
+      );
+    case "day":
+      throw new RangeError(
+        `Day must be an integer between 1 and ${error.max} for ${error.calendar} ${error.year}-${error.month}, received ${formatValue(error.value)}`,
+      );
   }
 }
 
 function assertJD(jd: number) {
-  if (!Number.isFinite(jd)) {
-    throw new RangeError(`Julian day must be a finite number, received ${jd}`);
+  if (!Number.isFinite(jd) || Math.abs(jd) >= MAX_SAFE_JD) {
+    throw new RangeError(
+      `Julian day must be a finite number with |jd| < ${MAX_SAFE_JD}, received ${formatValue(jd)}`,
+    );
   }
 }
 
@@ -105,18 +159,7 @@ function fromJD(calendar: Calendar, jd: number): CalendarDate {
 }
 
 function isValidDate(calendar: Calendar, year: number, month: number, day: number): boolean {
-  if (!isCalendar(calendar)) {
-    return false;
-  }
-  if (!Number.isSafeInteger(year) || !Number.isSafeInteger(month) || !Number.isSafeInteger(day)) {
-    return false;
-  }
-  const maxMonth = yearMonthsUnchecked(calendar, year);
-  if (month < 1 || month > maxMonth) {
-    return false;
-  }
-  const maxDay = monthDaysUnchecked(calendar, year, month);
-  return day >= 1 && day <= maxDay;
+  return validateDate(calendar, year, month, day) === null;
 }
 
 function isLeapYear(calendar: Calendar, year: number): boolean {
@@ -276,8 +319,7 @@ function julianToJD(year: number, month: number, day: number) {
 // JD_TO_JULIAN -- Calculate Julian calendar date from Julian day
 
 function jdToJulian(td: number): CalendarDate {
-  td += 0.5;
-  const z = Math.floor(td);
+  const z = civilDay(td);
 
   const a = z;
   const b = a + 1524;
@@ -404,15 +446,9 @@ function hebrewToJD(year: number, month: number, day: number) {
 function jdToHebrew(jd: number): CalendarDate {
   jd = normalizeJD(jd);
   const count = Math.floor(((jd - HEBREW_EPOCH) * 98496.0) / 35975351.0);
-  if (!Number.isSafeInteger(count) || !Number.isSafeInteger(count - 1)) {
-    throw new RangeError(`Julian day is out of supported range for hebrew calendar: ${jd}`);
-  }
   let year = count - 1;
   for (let i = count; jd >= hebrewYearStart(i); i++) {
     year++;
-    if (!Number.isSafeInteger(i + 1)) {
-      throw new RangeError(`Julian day is out of supported range for hebrew calendar: ${jd}`);
-    }
   }
 
   const nisanStart = hebrewToJD(year, 1, 1);
@@ -637,10 +673,18 @@ function dCos(d: number) {
   return Math.cos(dtr(d));
 }
 
+// CIVIL_DAY -- Map a Julian date to an exact integer civil-day index (midnight rollover)
+
+function civilDay(jd: number): number {
+  const day = Math.floor(jd);
+  const z = jd - day >= 0.5 ? day + 1 : day;
+  return z === 0 ? 0 : z;
+}
+
 // NORMALIZE_JD -- Normalize a Julian date to midnight at the start of its civil day
 
-function normalizeJD(jd: number) {
-  return Math.floor(jd - 0.5) + 0.5;
+function normalizeJD(jd: number): number {
+  return civilDay(jd) - 0.5;
 }
 
 // MOD -- Modulus function which works for non-integers
@@ -653,7 +697,7 @@ function mod(a: number, b: number) {
 
 function weekday(jd: number): number {
   assertJD(jd);
-  return mod(Math.floor(jd + 1.5), 7);
+  return mod(civilDay(jd) + 1, 7);
 }
 
 const WEEKDAYS = [
